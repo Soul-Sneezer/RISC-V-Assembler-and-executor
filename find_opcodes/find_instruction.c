@@ -91,7 +91,7 @@ int main()
 		if(entry.key != NULL)
 		{
 			printf("%d ", count++);
-			for(int j = 0; j < entry.keyLength; j++)
+			for(int j = 0; j < entry.key_length; j++)
 				printf("%c", entry.key[j]);
 			printf(":%d\n", entry.value);
 		}

@@ -1,6 +1,6 @@
 typedef struct 
 {
-	unsigned char bit : 1;
+	unsigned int bit : 1;
 } Bit;
 
 typedef struct 
@@ -21,15 +21,15 @@ typedef struct
 typedef struct 
 {
 	Byte mem[8192];
-	Byte* basePointer;
-	Byte* stackTop;
+	Byte* base_pointer;
+	Byte* stack_top;
 	Byte* heap;
 	Byte* code;
 } Memory;
 
 typedef struct 
 {
-	Memory cpuMem;
+	Memory cpu_mem;
 	DWord registers[32];
 } CPU;
 

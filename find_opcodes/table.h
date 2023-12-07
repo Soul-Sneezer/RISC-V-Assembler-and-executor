@@ -9,7 +9,7 @@ typedef struct
 {
 	char* key;
 	uint32_t hash;
-	int keyLength;
+	int key_length;
 	int value;
 } Entry;
 

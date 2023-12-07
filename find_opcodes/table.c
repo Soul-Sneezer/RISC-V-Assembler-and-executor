@@ -45,7 +45,7 @@ Entry* findEntry(Entry* entries, int size, char* s, int n, uint32_t hash)
 			return entry;
 		}
 
-		else if(entry->keyLength == n && entry->hash == hash && memcmp(entry->key, s, n) == 0)
+		else if(entry->key_length == n && entry->hash == hash && memcmp(entry->key, s, n) == 0)
 			return entry;
 
 		index = (index + 1) % size;
@@ -66,9 +66,9 @@ static void adjustSize(Table* table, int capacity)
 		Entry* entry = &table->entries[i];
 		if (entry->key == NULL) continue;
 
-		Entry* dest = findEntry(entries, capacity, entry->key, entry->keyLength, entry->hash);
+		Entry* dest = findEntry(entries, capacity, entry->key, entry->key_length, entry->hash);
 		dest->key = entry->key;
-		dest->keyLength = entry->keyLength;
+		dest->key_length = entry->key_length;
 		dest->hash = entry->hash;
 		dest->value = entry->value;
 	}
@@ -94,7 +94,7 @@ bool addToTable(Table* table, char* s, int n)
 	entry->key = s;
 	entry->hash = hash;
 	entry->value++;
-	entry->keyLength = n;
+	entry->key_length = n;
 	return isNewEntry;
 }
 
