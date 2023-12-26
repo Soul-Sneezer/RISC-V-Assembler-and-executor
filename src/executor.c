@@ -2,21 +2,34 @@
 #include <stdlib.h>
 #include "executor.h"
 #include "binary_tree.h"
-// Here we have the instruction opcodes
 
-
-int main(int argc, char argv[])
+static bool isAtEnd(CPU* cpu)
 {
-	if(argc == 1)
-	{
-		printf("ERROR: There is no file to execute.");
-	}
-	readFile();
-	readInstructionFile();
-	generateInstructions();
-	Byte* current_byte = getByte();
-	for(int i = 0; i < 8; i++)
-	{
-		current_byte->bits[i];
-	}
+	return cpu->ip == NULL;
+}
+
+static Byte nextByte(CPU* cpu)
+{
+	if(!isAtEnd(cpu))
+		return *(cpu->ip++);
+	
+	return NULL;
+}
+
+static Byte getByte(CPU* cpu)
+{
+	if(!isAtEnd(cpu))
+		return *cpu->ip;
+
+	return NULL;
+}
+
+void execute(CPU* cpu)
+{
+	if(isAtEnd(cpu))
+		return;
+
+	Byte instruction = getByte(cpu);
+
+	// find the instruction
 }
