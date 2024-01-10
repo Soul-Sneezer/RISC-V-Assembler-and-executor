@@ -84,7 +84,7 @@ static void skipWhitespace(Scanner* scanner)
 				scanner->line++;
 				advance(scanner);
 				break;
-			case '%': 
+			case '#': 
 			{
 				while(!isAtEnd(scanner) && peek(scanner) != '\n')
 				{
@@ -234,70 +234,6 @@ Token scanToken(Scanner* scanner)
 	switch(c)
 	{
 		case ',': return makeToken(scanner, TOKEN_COMMA);
-		case '$': return makeToken(scanner, TOKEN_REGISTER);
-		case 'r': return specialRegister(scanner);
-		case '#': return constant(scanner);
-		case '+': return makeToken(scanner, TOKEN_PLUS);
-		case '-': return makeToken(scanner, TOKEN_MINUS);
-		case '*': return makeToken(scanner, TOKEN_STAR);	
-		case '&': return makeToken(scanner, TOKEN_AND);
-		case '|': return makeToken(scanner, TOKEN_OR);
-		case '^': return makeToken(scanner, TOKEN_XOR);
-		case '~': return makeToken(scanner, TOKEN_COMPLEMENT);
-		case '/': 
-		{
-			if(peekNext(scanner) == '/') // this could also mark the beginning of a comment, according to Knuth
-			{				
-				advance(scanner);
-				return makeToken(scanner, TOKEN_DSLASH);
-			}
-			else if(peekNext(scanner) == '*')
-			{
-				advance(scanner);
-				while(peekNext(scanner) != '\0' && peek(scanner) != '*' && peekNext(scanner) != '/')
-				{
-					advance(scanner);
-				}
-				if(peek(scanner) != '\0')
-					advance(scanner);
-
-				return scanToken(scanner);
-			}
-			else
-				return makeToken(scanner, TOKEN_SLASH);
-		}
-		case '%':
-			return skipToEndOfLine(scanner);
-		case ';':
-		{
-			if(peekNext(scanner) == ';')
-			{
-				return skipToEndOfLine(scanner);
-			}
-			else
-				return makeToken(scanner, TOKEN_SEMICOLON);
-		}
-		case '<':
-		{
-			if(peekNext(scanner) == '<')
-			{
-				advance(scanner);
-				return makeToken(scanner, TOKEN_LSHIFT);
-			}
-			else
-				return errorToken(scanner, "'<' operator is not defined, did you mean '<<'?");
-		}
-		case '>':
-		{
-			if(peekNext(scanner) == '>')
-			{
-				advance(scanner);
-				return makeToken(scanner, TOKEN_RSHIFT);
-			}
-			else
-				return errorToken(scanner, "'>' operator is not defined, did you mean '>>'?");
-		}
-		case '@': return makeToken(scanner, TOKEN_AROUND);
 		case '"':
 		{
 			advance(scanner);
