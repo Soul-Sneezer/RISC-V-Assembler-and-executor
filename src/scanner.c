@@ -125,24 +125,6 @@ static bool match(char* word, int length, char* other_word, int length2)
 	return strcmp(word, other_word);
 }
 
-static bool isRegister(char* word, int length)
-{
-	if(length > 3 || length < 2)
-		return false;
-	
-	if(word[0] == 'x' || word[0] == 'f')
-	{
-		if(length == 2 && isNumeric(word[1]))
-			return true;
-		else if(length == 3 && (word[1] == '1' || word[1] == '2') && isNumeric(word[2]))
-			return true;
-		else if(length == 3 && word[1] == '3' && (word[2] == '0' || word[2] == '1' || word[2] == '2'))
-			return true;
-	}
-
-	return false;
-}
-
 static TokenType identifierType(Scanner* scanner)
 {
 	int length = scanner->current - scanner->start;
@@ -154,11 +136,11 @@ static TokenType identifierType(Scanner* scanner)
 	}
 	toLowercase(&word);
 
-	if(findWord(scanner->trie, word))
+	if(findWord(scanner->instructions, word))
 		return TOKEN_INSTRUCTION;
 
 	// check if it's a registers
-	if(isRegister(word, length))
+	if(findWord(scanner->registers, word))
 		return TOKEN_REGISTER;
 
 	return TOKEN_LABEL; // otherwise it's a label of some kind
@@ -172,13 +154,21 @@ Scanner* initScanner(char* source)
 	scanner->line = 1;
 
 	int size;
-	char** words = importInstructions("instructions.txt", &size);
-	scanner->trie = getNode();
+	char** words = importFile("instructions.txt", &size);
+	scanner->instructions = getNode();
 	for(int i = 0; i < size; i++)
 	{
 		toLowercase(&words[i]);
 	}
-	createTrie(scanner->trie, words, size);
+	createTrie(scanner->instructions, words, size);
+	
+	words = importFile("registers.txt", &size);
+	scanner->registers = getNode();
+	for(int i = 0; i < size; i++)
+	{
+		toLowercase(&words[i]);
+	}
+	createTrie(scanner->registers, words, size);
 
 	return scanner;
 }
@@ -201,39 +191,6 @@ static Token identifier(Scanner* scanner)
 	}
 
 	return makeToken(scanner, identifierType(scanner));
-}
-
-static Token generalRegister(Scanner* scanner)
-{
-	advance(scanner);
-	while(isAlphanumeric(scanner))
-	{
-		advance(scanner);
-	}
-
-	return makeToken(scanner, TOKEN_GENERAL_REGISTER);
-}
-
-static Token specialRegister(Scanner* scanner)
-{
-	advance(scanner);
-	while(isAlphanumeric(scanner))
-	{
-		advance(scanner);
-	}
-
-	return makeToken(scanner, TOKEN_SPECIAL_REGISTER);
-}
-
-static Token constant(Scanner* scanner)
-{
-	advance(scanner);
-	while(isHexadecimal(scanner))
-	{
-		advance(scanner);
-	}
-
-	return makeToken(scanner, TOKEN_CONSTANT);
 }
 
 static Token skipToEndOfLine(Scanner* scanner)

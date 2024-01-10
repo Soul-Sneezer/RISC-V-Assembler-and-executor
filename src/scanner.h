@@ -10,6 +10,7 @@ typedef struct
 	int line;
 
 	TrieNode* instructions;
+	TrieNode* registers;
 } Scanner;
 
 typedef enum

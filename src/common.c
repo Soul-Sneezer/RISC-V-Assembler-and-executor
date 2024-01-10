@@ -2,6 +2,18 @@
 #include <stdlib.h>
 #include "common.h"
 
+int parseNumber(char* buffer, int* index)
+{
+	int number = 0;
+	while(buffer[*index] != '\0' && buffer[*index] != '\n')
+	{
+		number = number* 10 + (buffer[*index] - '0');
+		(*index)++;
+	}
+
+	return number;
+}
+
 char* getString(char* buffer, int length, int buf_index)
 {
 	if(length <= 1)
@@ -48,29 +60,68 @@ void toLowercase(char** s)
 	}
 }
 
-char** importInstructions(const char* path, int* size)
+static void skipWhitespace(char* buffer, int* index)
 {
-	char** strings = (char**)malloc(256 * sizeof(char*));
+	for(;;)
+	{
+		char c = buffer[*index];
 
+		switch(c)
+		{
+			case ':':
+			case ' ':
+			case '\t':
+			case '\r':
+				*index++;
+				break;
+			case '%':
+				skipLine(buffer, index);
+				return;
+			default:
+				return;
+		}
+	}
+}
+
+static bool isDelimiter(char c)
+{
+	return (c == ' ' || c == ';' || c == '\t' || c == '\r' || c == '\n');
+}
+
+char** importFile(const char* path, int* size)
+{
+	bool value = false;
+	char** strings = (char**)malloc(256 * sizeof(char*));
+	char** values = (char**)malloc(256 * sizeof(char*));
 	char* buffer = readFile(path);
-	int length = 0;
-	int index = 0;
+	uint8_t length = 0;
+	uint8_t index = 0;
 	int buf_index = 0;
+
 	while(buffer[buf_index] != '\0')
 	{
-		if(buffer[buf_index] == ' ' || buffer[buf_index] == ';' || buffer[buf_index] == '\t' || buffer[buf_index] == '\n')
+		skipWhitespace(buffer, &buf_index);
+
+		if(isDelimiter(buffer[buf_index])
 		{
-			if(index == 0)
-				length++;
 			char* new_string = getString(buffer, length, buf_index);
 			if(new_string != NULL)
 			{
-				strings[index++] = new_string;
+				if(!value)
+					strings[index] = new_string;
+				else
+					values[index++] = new_string;
 			}
 			length = 0;
+			value = !value;
+			skipWhitespace(buffer, &buf_index);
 		}
-		buf_index++;
-		length++;
+		}
+		else
+		{
+			buf_index++;
+			length++;
+		}
 	}
 	*size = index;
 
