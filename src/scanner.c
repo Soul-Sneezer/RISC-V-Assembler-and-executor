@@ -5,22 +5,7 @@
 #include "scanner.h"
 #include "common.h"
 #include "trie.h"
-
-char* getString(char* buffer, int length, int buf_index)
-{
-	if(length <= 1)
-		return NULL;
-	
-	int i = 0;
-	char* new_string = (char*)malloc(length * sizeof(char));
-	new_string[length - 1] = '\0';
-	for(; (i + 1 - length) != 0; i++)
-	{
-		new_string[i]	= buffer[buf_index - length + 1 + i];	
-	}
-
-	return new_string;
-}
+#include "vm.h"
 
 static bool isAtEnd(Scanner* scanner)
 {
@@ -153,23 +138,6 @@ Scanner* initScanner(char* source)
 	scanner->current = source;
 	scanner->line = 1;
 
-	int size;
-	char** words = importFile("instructions.txt", &size);
-	scanner->instructions = getNode();
-	for(int i = 0; i < size; i++)
-	{
-		toLowercase(&words[i]);
-	}
-	createTrie(scanner->instructions, words, size);
-	
-	words = importFile("registers.txt", &size);
-	scanner->registers = getNode();
-	for(int i = 0; i < size; i++)
-	{
-		toLowercase(&words[i]);
-	}
-	createTrie(scanner->registers, words, size);
-
 	return scanner;
 }
 
@@ -223,6 +191,30 @@ Token scanToken(Scanner* scanner)
 	switch(c)
 	{
 		case ',': return makeToken(scanner, TOKEN_COMMA);
+		case '.':
+		{
+			bool isSection = true;
+			while(peek(scanner) != '\n')
+			{
+				advance();
+				if(peek(scanner) == ' ' || peek(scanner) == '\t' || peek(scanner) == '\r')
+				{
+					Token token = makeToken(scanner, TOKEN_SECTION);
+					if(match(token.start, token.length, ".global", 7);
+							isSection = false;
+				}
+				if(peek(scanner) == '.')
+				{
+					advance();
+					scanner->start = scanner->current;
+				}
+			}
+			Token token = makeToken(scanner, TOKEN_SECTION);
+			if(isSection)
+				return token;
+			createEntryPoint(token.start, token.length, VM* vm);
+			break;
+		}
 		case '"':
 		{
 			advance(scanner);

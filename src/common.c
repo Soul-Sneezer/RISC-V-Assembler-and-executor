@@ -88,7 +88,7 @@ static bool isDelimiter(char c)
 	return (c == ' ' || c == ';' || c == '\t' || c == '\r' || c == '\n');
 }
 
-char** importFile(const char* path, int* size)
+void importFile(const char* path, int* size, char** s, char** v)
 {
 	bool value = false;
 	char** strings = (char**)malloc(256 * sizeof(char*));
@@ -124,6 +124,6 @@ char** importFile(const char* path, int* size)
 		}
 	}
 	*size = index;
-
-	return strings;
+	s = strings;
+	v = values;
 }

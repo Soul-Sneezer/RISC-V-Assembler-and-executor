@@ -110,6 +110,8 @@ void createInstructionTrie(TrieNode* node)
 	{
 		insertNode(node, words[i], values[i]);
 	}
+
+	free(buffer);
 }
 
 int findWord(TrieNode* node, char* word)

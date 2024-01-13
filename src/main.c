@@ -23,6 +23,28 @@ int main(int argc, const char* argv[])
 	{
 		const char* source = readFile(argv[1]);
 		Scanner* scanner = initScanner(source);
+		Parser* parser = initParser();
+
+		int size;
+		char** words = (char**)malloc(256 * sizeof(char*));
+		char** values = (char**)malloc(256 * sizeof(char*));
+		importFile("instructions.txt", &size, words, values);
+		scanner->instructions = getNode();
+		for(int i = 0; i < size; i++)
+		{
+			toLowercase(&words[i]);
+		}
+		createTrie(scanner->instructions, words, size);
+	
+		words = importFile("registers.txt", &size, words, values);
+		scanner->registers = getNode();
+		for(int i = 0; i < size; i++)
+		{
+			toLowercase(&words[i]);
+		}
+		createTrie(scanner->registers, words, size);
+
+	
 		freeScanner(scanner);
 	}
 	else

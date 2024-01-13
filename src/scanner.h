@@ -1,5 +1,5 @@
-#ifndef mmix_proj_scanner
-#define mmix_proj_scanner
+#ifndef RISKV_SCANNER
+#define RISKV_SCANNER
 
 #include "trie.h"
 
@@ -16,7 +16,8 @@ typedef struct
 typedef enum
 {
 	TOKEN_INSTRUCTION, TOKEN_REGISTER, TOKEN_IMMEDIATE, TOKEN_LABEL, 
-	TOKEN_STRING, TOKEN_COMMA, TOKEN_CONSTANT ,TOKEN_ERR, TOKEN_EOF, 
+	TOKEN_STRING, TOKEN_COMMA, TOKEN_CONSTANT ,TOKEN_ERR, TOKEN_EOF,
+	TOKEN_SECTION,
 } TokenType;
 
 typedef struct
