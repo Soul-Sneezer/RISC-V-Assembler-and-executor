@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "vm.h"
 
 static bool isAtEnd(VM* vm)
@@ -62,12 +63,18 @@ static void getName()
 
 static Byte* findLocation(char* name)
 {
+
 }
 
 static void jumpToLocation(Byte* location)
 {
 	vm->ip = location;
 }
+
+static int valueInRegister(uint8_t index);
+static void setRegister(uint8_t index);
+
+static uint32_t unsig(int value);
 
 void execute(VM* vm)
 {
@@ -93,55 +100,192 @@ void execute(VM* vm)
 		case OP_BEQZ: // branch if zero
 		{							// expects a register and a position as arguments
 			uint8_t reg = getRegister();
-			char* name = getName();
-			Byte* location = findLocation();
-			if (registers[reg] == 0)
+			uint32_t imm = getImmediate();
+			if (intFromRegister(reg) == 0)
 				jumpToLocation(location);
 		}
 			break;
 		case OP_FMULS:
+		{
+			uint8_t rd = getRegister();
+			uint8_t rs1 = getRegister();
+			uint8_t rs2 = getRegister();
+						
+			setRegister(rd) = valueInRegister(rs1) * valueInRegister(rs2);
+		}
 			break;
 		case OP_FADDD:
+		{
+			uint8_t rd = getRegister();
+			uint8_t rs1 = getRegister();
+			uint8_t rs2 = getRegister();
+					
+			setRegister(rd) = valueInRegister(rs1) + valueInRegister(rs2);
+
+		}
 			break;
 		case OP_BNEZ:
+		{
+			uint8_t reg = getRegister();
+			uint32_t imm = getImmediate();
+			if (valueInRegister(reg) != 0)
+				jumpToLocation(location);
+		}
 			break;
 		case OP_SUB:
+		{
+			uint8_t rd = getRegister();
+			uint8_t rs1 = getRegister();
+			uint8_t rs2 = getRegister();
+						
+			setRegister(rd) = valueInRegister(rs1) + valueInRegister(rs2);
+		}
 			break;
-		OP_FMULD:
+		case OP_FMULD:
+		{
+			uint8_t rd = getRegister();
+			uint8_t rs1 = getRegister();
+			uint8_t rs2 = getRegister();
+						
+			setRegister(rd) = valueInRegister(rs1) * valueInRegister(rs2);
+		}
 			break;
 		case OP_BGE:
+		{
+			uint8_t rs1 = getRegister();
+			uint8_t rs2 = getRegister();
+			uint32_t imm = getImmediate();
+			
+
+			if(rs2 >= rs1)
+				jumpToLocation(location);
+		}
 			break;
-		case OP_FLD:
+		case OP_FLD:	// load float from memory into register
+		{
+			uint8_t rd = getRegister();
+			double f = getDoubleFromMemory();
+			setReigster(rd) = f;
+		}
 			break;
 		case OP_FADDS:
+		{
+			uint8_t rd = getRegister();
+			uint8_t rs1 = getRegister();
+			uint8_t rs2 = getRegister();
+
+			setRegister(rd) = valueInRegister(rs1) + valueInRegister(rs2);
+		}
 			break;
 		case OP_FSQRT:
+		{
+			uint8_t rd = getRegister();
+			uint8_t rs1 = getRegister();
+			double f = valueInRegister(rs1);
+			setRegister(rd) = sqrt(f);
+		}
 			break;
 		case OP_FLW:
+		{
+			uint8_t rd = getRegister();
+			float f = getFloatFromMemory();
+			setRegister(rd) = f;
+		}
 			break;
 		case OP_BLE:
+		{
+			uint8_t rs1 = getRegister();
+			uint8_t rs2 = getRegister();
+			uint32_t imm = getImmediate();
+
+			if(valueInRegister(rs1) <= valueInRegister(rs2))
+				jumpToLocation(location);
+		}
 			break;
 		case OP_FLT:
+		{
+			uint8_t rd = getRegister();
+			uint8_t rs1 = getRegister();
+			uint8_t rs2 = getRegister();
+
+			if(valueInRegister(rs1) < valueInRegister(rs2))
+			{
+				setRegister(rd) = 1;
+			}
+		}
 			break;
 		case OP_FSUB:
+		{
+			uint8_t rd = getRegister();
+			uint8_t rs1 = getRegister();
+			uint8_t rs2 = getRegister();
+			
+			setRegister(rd) = valueInRegister(rs1) - valueInRegister(rs2);
+		}
 			break;
 		case OP_SRAI:
+		{
+			uint8_t rd = getRegister();
+			uint32_t imm = getImmediate();
+
+			setRegister(rd) = valueInRegister(rd) >> imm;
+		}
 			break;
 		case OP_SLLI:
+		{
+			uint8_t rd = getRegister();
+			uint32_t imm = getImmediate();
+
+			setRegister(rd) = valueInRegister(rd) << imm;
+		}
 			break;
 		case OP_BGT:
+		{
+			uint8_t rs1 = getRegister();
+			uint8_t rs2 = getRegister();
+			uint32_t imm = getImmediate();
+
+			if(valueInRegister(rs1) > valueInRegister(rs2))
+				jumpToLocation(imm);
+
+		}
 			break;
 		case OP_FMV:
+		{
+			uint8_t rd = getRegister();
+			uint8_t rs = getRegister();
+
+			setRegister(rd) = valueInRegister(rs);
+		}
 			break;
 		case OP_LD:
+		{
+			uint8_t rd = getRegister();	// to fix
+			setRegister(rd) = getValueFromMemory();
+		}
 			break;
 		case OP_LB:
+		{
+			uint8_t rd = getRegister();	// to fix
+			setRegister(rd) = getByteFromMemory();
+
+		}
 			break;
 		case OP_SD:
 			break;
 		case OP_MV:
+		{
+			uint8_t rd = getRegister();
+			uint8_t rs = getRegister();
+
+			setRegister(rd) = valueInRegister(rs);
+		}
 			break;
 		case OP_LW:
+		{
+			uint8_t rd = getRegister();	// to fix
+			setRegister(rd) = getValueFromMemory();
+		}
 			break;
 		case OP_SB:
 			break;
@@ -150,16 +294,34 @@ void execute(VM* vm)
 		case OP_RET:
 			break;
 		case OP_ADD:
+		{
+			uint8_t rd = getRegister();
+			uint8_t rs1 = getRegister();
+			uint8_t rs2 = getRegister();
+
+			setRegister(rd) = valueInRegister(rs1) + valueInRegister(rs2);
+		}
 			break;
 		case OP_LI:
 			break;
 		case OP_ADDI:
+		{
+			uint8_t rd = getRegister();
+			uint8_t rs1 = getRegister();
+			uint8_t rs2 = getRegister();
+
+			setRegister(rd) = unsig(valueInRegister(rs1)) + unsig(valueInRegister(rs2));
+		}
 			break;
 		case OP_SFW:
 			break;
 		case OP_LA:
 			break;
 		case OP_J:
+		{
+			Byte* location = findLocation();
+			jumpToLocation(location);
+		}
 			break;
 		default:
 			runtimeError("Unknown instruction.");
