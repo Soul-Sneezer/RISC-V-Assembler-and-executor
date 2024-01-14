@@ -290,8 +290,15 @@ void execute(VM* vm)
 		case OP_SB:
 			break;
 		case OP_CALL:
+		{
+			// save current address using the stack?
+			// jump to procedure
+		}
 			break;
 		case OP_RET:
+		{
+			// go back to original address
+		}
 			break;
 		case OP_ADD:
 		{
