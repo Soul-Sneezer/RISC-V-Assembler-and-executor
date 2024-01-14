@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include "common.h"
 
 int parseNumber(char* buffer, int* index)
@@ -14,19 +16,21 @@ int parseNumber(char* buffer, int* index)
 	return number;
 }
 
-char* getString(char* buffer, int length, int buf_index)
+static bool isDelimiter(char c)
 {
-	if(length <= 1)
-		return NULL;
-	
-	int i = 0;
-	char* new_string = (char*)malloc(length * sizeof(char));
-	new_string[length - 1] = '\0';
-	for(; (i + 1 - length) != 0; i++)
-	{
-		new_string[i]	= buffer[buf_index - length + 1 + i];	
-	}
+	return (c == ' ' || c == ':' || c == '\t' || c == '\r' || c == '\n');
+}
 
+static char* getString(char* buffer, int* buf_index, int length)
+{
+	char* new_string;
+
+	new_string = (char*)malloc((length + 1) * sizeof(char));
+	new_string[length] = '\0';
+	for(int i = 0; i < length; i++)
+	{
+		new_string[i] = buffer[*buf_index - length +  i];
+	}
 	return new_string;
 }
 
@@ -53,10 +57,22 @@ void toLowercaseC(char* c)
 
 void toLowercase(char** s)
 {
-	for(int i = 0; i < (*s)[i] != '\0'; i++)
+	for(int i = 0; (*s)[i] != '\0'; i++)
 	{
 		if((*s)[i] >= 'A' && (*s)[i] <= 'Z')
 			(*s)[i] += 32;
+	}
+}
+
+static void skipLine(char* buffer, int* index)
+{
+	for(;;)
+	{
+		char c = buffer[*index];
+		if(c != '\n' && c != '\0')
+			*index++;
+		else
+			return;
 	}
 }
 
@@ -72,9 +88,9 @@ static void skipWhitespace(char* buffer, int* index)
 			case ' ':
 			case '\t':
 			case '\r':
-				*index++;
+				(*index)++;
 				break;
-			case '%':
+			case ';':
 				skipLine(buffer, index);
 				return;
 			default:
@@ -83,28 +99,23 @@ static void skipWhitespace(char* buffer, int* index)
 	}
 }
 
-static bool isDelimiter(char c)
-{
-	return (c == ' ' || c == ';' || c == '\t' || c == '\r' || c == '\n');
-}
-
-void importFile(const char* path, int* size, char** s, char** v)
+char** importFile(const char* path, int* size, char** s, char** v)
 {
 	bool value = false;
 	char** strings = (char**)malloc(256 * sizeof(char*));
 	char** values = (char**)malloc(256 * sizeof(char*));
 	char* buffer = readFile(path);
-	uint8_t length = 0;
-	uint8_t index = 0;
+	int index = 0;
 	int buf_index = 0;
+	int length = 0;
+
+	skipWhitespace(buffer, &buf_index);
 
 	while(buffer[buf_index] != '\0')
 	{
-		skipWhitespace(buffer, &buf_index);
-
-		if(isDelimiter(buffer[buf_index])
+		if(isDelimiter(buffer[buf_index]))
 		{
-			char* new_string = getString(buffer, length, buf_index);
+			char* new_string = getString(buffer, &buf_index, length);
 			if(new_string != NULL)
 			{
 				if(!value)
@@ -112,18 +123,18 @@ void importFile(const char* path, int* size, char** s, char** v)
 				else
 					values[index++] = new_string;
 			}
-			length = 0;
 			value = !value;
+			length = 0;
+			buf_index++;
 			skipWhitespace(buffer, &buf_index);
 		}
-		}
-		else
+		else if(buffer[buf_index] != '\0')
 		{
 			buf_index++;
 			length++;
 		}
 	}
 	*size = index;
-	s = strings;
-	v = values;
+	return strings;
+	//*v = *values;
 }

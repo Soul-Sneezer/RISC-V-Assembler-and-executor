@@ -5,7 +5,7 @@
 #include "scanner.h"
 #include "common.h"
 #include "trie.h"
-#include "vm.h"
+//#include "vm.h"
 
 static bool isAtEnd(Scanner* scanner)
 {
@@ -83,26 +83,23 @@ static void skipWhitespace(Scanner* scanner)
 	}
 }
 
-static bool isNumeric(Scanner* scanner)
+static bool isDigit(char c)
 {
-	char c = peek(scanner);
 	return (c >= '0' && c <= '9');
 }
 
-static bool isHexadecimal(Scanner* scanner)
+static bool isHexadecimal(char c)
 {
-	char c = peek(scanner);
 	toLowercaseC(&c);
 	return ((c >= '0'  && c <= '9') || c == 'a' || c == 'b' || c == 'c' || c == 'd' || c == 'e');
 }
 
-static bool isAlphanumeric(Scanner* scanner)
+static bool isAlphanumeric(char c)
 {
-		char c = peek(scanner);
-		return ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_');
+		return ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' || c == ':');
 }
 
-static bool match(char* word, int length, char* other_word, int length2)
+static bool match(char* word, int length1, char* other_word, int length2)
 {
 	if(length1 != length2)
 		return false;
@@ -124,10 +121,18 @@ static TokenType identifierType(Scanner* scanner)
 	if(findWord(scanner->instructions, word))
 		return TOKEN_INSTRUCTION;
 
-	// check if it's a registers
+	// check if it's a register
 	if(findWord(scanner->registers, word))
 		return TOKEN_REGISTER;
 
+	bool immediate = true;
+	for(int i = 0; i < length; i++)
+	{
+		if(!isDigit(word[i]))
+			immediate = false;
+	}
+	if(immediate)
+		return TOKEN_IMMEDIATE;
 	return TOKEN_LABEL; // otherwise it's a label of some kind
 }
 
@@ -141,19 +146,9 @@ Scanner* initScanner(char* source)
 	return scanner;
 }
 
-static Token immediate(Scanner* scanner)
-{
-	while(isNumeric(scanner))
-	{
-		advance(scanner);
-	}
-
-	return makeToken(scanner, TOKEN_IMMEDIATE);
-}
-
 static Token identifier(Scanner* scanner)
 {
-	while(isAlphanumeric(scanner))
+	while(isAlphanumeric(peek(scanner)))
 	{
 		advance(scanner);
 	}
@@ -174,47 +169,41 @@ Token scanToken(Scanner* scanner)
 	skipWhitespace(scanner);
 	scanner->start = scanner->current;
 
-	if(isNumeric(scanner))
-	{
-		return immediate(scanner);
-	}
-	else if(isAlphanumeric(scanner))
-	{
-		return identifier(scanner);
-	}
-
-	if (isAtEnd(scanner))
+	if(isAtEnd(scanner))
 		return makeToken(scanner, TOKEN_EOF);
-
+	
 	char c = advance(scanner);
 
 	switch(c)
 	{
 		case ',': return makeToken(scanner, TOKEN_COMMA);
+		case '(': return makeToken(scanner, TOKEN_LEFT_PAREN);
+		case ')': return makeToken(scanner, TOKEN_RIGHT_PAREN);
+		case '-': return makeToken(scanner, TOKEN_MINUS);
 		case '.':
 		{
 			bool isSection = true;
+			bool skipKeyword = false;
 			while(peek(scanner) != '\n')
 			{
-				advance();
+				advance(scanner);
 				if(peek(scanner) == ' ' || peek(scanner) == '\t' || peek(scanner) == '\r')
 				{
 					Token token = makeToken(scanner, TOKEN_SECTION);
-					if(match(token.start, token.length, ".global", 7);
+					if(match(token.start, token.length, ".global", 7))
 							isSection = false;
-				}
-				if(peek(scanner) == '.')
-				{
-					advance();
+					skipKeyword = true;
+					skipWhitespace(scanner);
 					scanner->start = scanner->current;
 				}
 			}
 			Token token = makeToken(scanner, TOKEN_SECTION);
-			if(isSection)
-				return token;
-			createEntryPoint(token.start, token.length, VM* vm);
-			break;
+			if(!isSection)
+				token.type = TOKEN_ENTRY;
+			advance(scanner);
+			return token;
 		}
+		
 		case '"':
 		{
 			advance(scanner);
@@ -235,11 +224,46 @@ Token scanToken(Scanner* scanner)
 
 			return token;
 		}
+		default:
+		{
+			if(isAlphanumeric(c))
+			{
+				return identifier(scanner);
+			}
+		return errorToken(scanner, "Unexpected character.");
+		}
 	}
-	return errorToken(scanner, "Unexpected character.");
 }
 
 void freeScanner(Scanner* scanner)
 {
 
 }
+/* this is for testing
+int main(int argc, char* argv[])
+{
+	char* source = readFile(argv[1]);
+	Scanner* scanner = initScanner(source);
+	int size = 0;
+	char** words = (char**)malloc(256 * sizeof(char*));
+	char** values = (char**)malloc(256 * sizeof(char*));
+	words = importFile("instructions.txt", &size, words, values);
+	scanner->instructions = getNode();
+	createTrie(scanner->instructions, words, size);
+
+	words = importFile("registers.txt", &size, words, values);
+	scanner->registers = getNode();
+
+	createTrie(scanner->registers, words, size);
+
+	Token token;
+	//token = scanToken(scanner);
+	//token = scanToken(scanner);
+	while((token = scanToken(scanner)).type != TOKEN_EOF)
+	{
+		for(int i = 0; i < token.length; i++)
+			printf("%c", token.start[i]);
+		printf(" ");
+	}
+}
+*/
