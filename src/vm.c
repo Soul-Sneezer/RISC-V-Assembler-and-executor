@@ -334,3 +334,9 @@ void execute(VM* vm)
 			runtimeError("Unknown instruction.");
 	}
 }
+
+void initCPU(const char* header_file, const char* code_file)
+{
+	loadHeader(header_file);
+	loadCode(code_file);
+}

@@ -45,7 +45,9 @@ typedef struct
 	DWord registers[64];
 } VM;
 
-void initCPU(VM* cpu);
+void loadHeader(VM* cpu, const char* header_file);
+void loadCode(VM* cpu, const char* code_file);
+void initCPU(const char* header_file, const char* code_file);
 void freeCPU(VM* cpu);
 void execute(VM* cpu);
 

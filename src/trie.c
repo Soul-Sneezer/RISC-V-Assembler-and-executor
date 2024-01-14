@@ -58,18 +58,6 @@ void createTrie(TrieNode* node, char** words, int n)
 	}
 }
 
-int parseNumber(char* buffer, int* index)
-{
-	int number = 0;
-	while(buffer[*index] != '\0' && buffer[*index] != '\n')
-	{
-		number = number* 10 + (buffer[*index] - '0');
-		(*index)++;
-	}
-
-	return number;
-}
-
 void createInstructionTrie(TrieNode* node)
 {
 	char* buffer = readFile("instructions2.txt");

@@ -116,14 +116,35 @@ bool addToTable(Table* table, char* s, int n)
 	
 	uint32_t hash = hashString(s, n);
 	Entry* entry = findEntry(table->entries, table->size, s, n, hash);
-	bool isNewEntry = (entry->key == NULL); 
-	if (isNewEntry) table->count++;
+	bool is_new_entry = (entry->key == NULL); 
+	if (is_new_entry) table->count++;
 
 	entry->key = s;
 	entry->hash = hash;
 	entry->as.integer++;
 	entry->key_length = n;
-	return isNewEntry;
+	return is_new_entry;
+}
+
+bool addValueToTable(Table* table, char* key, int key_length, int value)
+{
+	if(table->count + 1 > table->size * TABLE_LOAD_FACTOR)
+	{
+		int capacity = GROW_LIST(table->size);
+		adjustSize(table, capacity);
+	}
+
+	uint32_t hash = hashString(key, key_length);
+	Entry* entry findEntry = findEntry(table->entries, table->size, key, key_length, hash);
+	bool is_new_entry = (entry->key == NULL);
+	if (is_new_entry) table->count++;
+
+	entry->key = key;
+	entry->hash = hash;
+	entry->as.integer = value;
+	entry->key_length = key_length;
+
+	return is_new_entry;
 }
 
 bool addStringToTable(Table* table, char* key, int key_length, char* value)
@@ -135,15 +156,15 @@ bool addStringToTable(Table* table, char* key, int key_length, char* value)
 	}
 	uint32_t hash = hashString(key, key_length);
 	Entry* entry = findEntry(table->entries, table->size, key, key_length, hash);
-	bool isNewEntry = (entry->key == NULL);
-	if (isNewEntry) table->count++;
+	bool is_new_entry = (entry->key == NULL);
+	if (is_new_entry) table->count++;
 
 	entry->key = key;
 	entry->hash = hash;
 	entry->as.str = value;
 	entry->key_length = key_length;
 
-	return isNewEntry;
+	return is_new_entry;
 }
 
 /* for testing
