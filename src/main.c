@@ -23,32 +23,25 @@ int main(int argc, const char* argv[])
 	{
 		const char* source = readFile(argv[1]);
 		Scanner* scanner = initScanner(source);
-		Parser* parser = initParser();
 
 		int size;
-		char** words = (char**)malloc(256 * sizeof(char*));
-		char** values;
-		importFile("instructions.txt", &size, words, &values);
-		createInstructionTable(parser, size, words, values);
-		scanner->instructions = getNode();
-		for(int i = 0; i < size; i++)
-		{
-			toLowercase(&words[i]);
-		}
-		createTrie(scanner->instructions, words, size);
-	
-		importFile("registers.txt", &size, words, values);
-		createRegisterTable(parser, size, words, values);
+		char** instruction_names = (char**)malloc(256 * sizeof(char*));
+		char** instruction_values;
+		importFile("instructions.txt", &size, instruction_names, &instruction_values);
+				scanner->instructions = getNode();
+		createTrie(scanner->instructions, instruction_names, size);
+
+		char** register_names = (char**)malloc(256 * sizeof(char*));
+		char** register_values;
+		importFile("registers.txt", &size, register_names, &register_values);
 		scanner->registers = getNode();
-		for(int i = 0; i < size; i++)
-		{
-			toLowercase(&words[i]);
-		}
-		createTrie(scanner->registers, words, size);
+		createTrie(scanner->registers, register_names, size);
 		
-		parse(scanner, parser);
-	
+		Parser* parser = initParser(instruction_names, instruction_values, register_names, register_values, "header.kelp", "header.ok", size);
+
+		parse(parser, scanner);
 		freeScanner(scanner);
+		freeParser(parser);
 	}
 	else
 	{
