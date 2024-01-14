@@ -239,7 +239,8 @@ void freeScanner(Scanner* scanner)
 {
 
 }
-/* this is for testing
+
+/*
 int main(int argc, char* argv[])
 {
 	char* source = readFile(argv[1]);
@@ -247,11 +248,11 @@ int main(int argc, char* argv[])
 	int size = 0;
 	char** words = (char**)malloc(256 * sizeof(char*));
 	char** values = (char**)malloc(256 * sizeof(char*));
-	words = importFile("instructions.txt", &size, words, values);
+	words = importFile("instructions.txt", &size, words, &values);
 	scanner->instructions = getNode();
 	createTrie(scanner->instructions, words, size);
 
-	words = importFile("registers.txt", &size, words, values);
+	words = importFile("registers.txt", &size, words, &values);
 	scanner->registers = getNode();
 
 	createTrie(scanner->registers, words, size);

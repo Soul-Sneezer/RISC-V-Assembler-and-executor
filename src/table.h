@@ -10,22 +10,15 @@
 
 typedef struct
 {
-	int length;
-	char* chars;
-} ObjString;
-
-typedef union
-{
-	int number;
-	ObjString* s;
-} Value;
-
-typedef struct
-{
 	char* key;
 	uint32_t hash;
 	int key_length;
-	int value;
+	bool is_int;
+	union
+	{
+		int integer;
+		char* str;
+	} as;
 } Entry;
 
 typedef struct
@@ -39,8 +32,8 @@ void initTable(Table* table);
 uint32_t hashString(char* s, int n);
 Entry* findEntry(Entry* entries, int size, char* s, int n, uint32_t hash);
 bool findInTable(Table* table, char* s, int* value);
-bool addIntegerToTable(Table* table, char* key, int n);
-bool addStringToTable(Table* table, char* key, char* s);
+bool addToTable(Table* table, char* key, int n);
+bool addStringToTable(Table* table, char* key, int key_length, char* value);
 void freeTable(Table* table);
 
 #endif

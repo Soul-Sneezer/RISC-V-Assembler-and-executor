@@ -27,8 +27,9 @@ int main(int argc, const char* argv[])
 
 		int size;
 		char** words = (char**)malloc(256 * sizeof(char*));
-		char** values = (char**)malloc(256 * sizeof(char*));
-		importFile("instructions.txt", &size, words, values);
+		char** values;
+		importFile("instructions.txt", &size, words, &values);
+		createInstructionTable(parser, size, words, values);
 		scanner->instructions = getNode();
 		for(int i = 0; i < size; i++)
 		{
@@ -36,14 +37,16 @@ int main(int argc, const char* argv[])
 		}
 		createTrie(scanner->instructions, words, size);
 	
-		words = importFile("registers.txt", &size, words, values);
+		importFile("registers.txt", &size, words, values);
+		createRegisterTable(parser, size, words, values);
 		scanner->registers = getNode();
 		for(int i = 0; i < size; i++)
 		{
 			toLowercase(&words[i]);
 		}
 		createTrie(scanner->registers, words, size);
-
+		
+		parse(scanner, parser);
 	
 		freeScanner(scanner);
 	}

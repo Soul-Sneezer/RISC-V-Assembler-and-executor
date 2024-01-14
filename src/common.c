@@ -99,11 +99,11 @@ static void skipWhitespace(char* buffer, int* index)
 	}
 }
 
-char** importFile(const char* path, int* size, char** s, char** v)
+char** importFile(const char* path, int* size, char** s, char*** values) // I'm not proud of this
 {
 	bool value = false;
 	char** strings = (char**)malloc(256 * sizeof(char*));
-	char** values = (char**)malloc(256 * sizeof(char*));
+	*values = (char**)malloc(256 * sizeof(char*));
 	char* buffer = readFile(path);
 	int index = 0;
 	int buf_index = 0;
@@ -121,7 +121,7 @@ char** importFile(const char* path, int* size, char** s, char** v)
 				if(!value)
 					strings[index] = new_string;
 				else
-					values[index++] = new_string;
+					(*values)[index++] = new_string;
 			}
 			value = !value;
 			length = 0;
@@ -136,5 +136,4 @@ char** importFile(const char* path, int* size, char** s, char** v)
 	}
 	*size = index;
 	return strings;
-	//*v = *values;
 }

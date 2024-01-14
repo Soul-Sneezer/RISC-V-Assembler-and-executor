@@ -51,6 +51,20 @@ Entry* findEntry(Entry* entries, int size, char* s, int n, uint32_t hash)
 	}
 }
 
+bool findStringInTable(Table* table, char* s, char** val)
+{
+	int n = strlen(s);
+	uint32_t hash = hashString(s, n);	
+	
+	Entry* entry = findEntry(table->entries, table->size, s, n, hash);
+	if(entry->key == NULL)
+		return false;
+
+	*val = entry->as.str;
+	return true;
+
+}
+
 bool findInTable(Table* table, char* s, int* val)
 {
 	int n = strlen(s);
@@ -60,7 +74,7 @@ bool findInTable(Table* table, char* s, int* val)
 	if(entry->key == NULL)
 		return false;
 
-	*val = entry->value;
+	*val = entry->as.integer;
 	return true;
 }
 
@@ -70,7 +84,8 @@ static void adjustSize(Table* table, int capacity)
 	for(int i = 0; i < capacity; i++)
 	{
 		entries[i].key = NULL;
-		entries[i].value = 0;
+		entries[i].as.integer = 0;
+		entries[i].as.str = NULL;
 	}
 
 	for(int i = 0; i < table->size; i++)
@@ -82,7 +97,8 @@ static void adjustSize(Table* table, int capacity)
 		dest->key = entry->key;
 		dest->key_length = entry->key_length;
 		dest->hash = entry->hash;
-		dest->value = entry->value;
+		dest->as.integer = entry->as.integer;
+		dest->as.str = entry->as.str;
 	}
 
 	free(table->entries);
@@ -105,8 +121,28 @@ bool addToTable(Table* table, char* s, int n)
 
 	entry->key = s;
 	entry->hash = hash;
-	entry->value++;
+	entry->as.integer++;
 	entry->key_length = n;
+	return isNewEntry;
+}
+
+bool addStringToTable(Table* table, char* key, int key_length, char* value)
+{
+	if(table->count + 1 > table->size * TABLE_LOAD_FACTOR)
+	{
+		int capacity = GROW_LIST(table->size);
+		adjustSize(table, capacity);
+	}
+	uint32_t hash = hashString(key, key_length);
+	Entry* entry = findEntry(table->entries, table->size, key, key_length, hash);
+	bool isNewEntry = (entry->key == NULL);
+	if (isNewEntry) table->count++;
+
+	entry->key = key;
+	entry->hash = hash;
+	entry->as.str = value;
+	entry->key_length = key_length;
+
 	return isNewEntry;
 }
 
@@ -117,7 +153,7 @@ int main()
 	printf("%d", addToTable(&t, "add", 3, -211));
 	addToTable(&t, "add", 3, 200);
 	Entry* entry = findEntry(&t, "add", 3, hashString("add",3));
-	printf("%d", (entry->value));
+	printf("%d", (entry->as.integer));
 	freeTable(&t);
 }
 */

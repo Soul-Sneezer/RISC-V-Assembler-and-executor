@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "parser.h"
 #include "scanner.h"
-#include "vm.h"
 
 static void errorAt(Token token, const char* message)
 {
@@ -63,9 +62,9 @@ static bool check(Parser* parser, TokenType type)
 	return parser->current.type == type;
 }
 
-static void emitByte(VM* vm, Byte byte)
+static void emitByte(Byte byte)
 {
-	addByte(vm->byte_set, byte);
+	addByte(byte);
 }
 
 static bool isMacro(Parser* parser)
@@ -80,20 +79,18 @@ static bool match(char* instruction, int start, char* pattern, int length)
 	return false;
 }
 
-static void commaStatement(Parser* parser, Scanner* scanner, VM* vm)
+static void commaStatement(Parser* parser, Scanner* scanner)
 {
-	int value = expressionStatement(parser, scanner, vm);
-	emitByte(vm, );
+	int value = expressionStatement(parser, scanner);
 
 	while(check(parser, TOKEN_COMMA))
 	{
 		advance(parser, scanner);
-		value = expressionStatement(parser, scanner, vm);
-		emitByte(vm, );
+		value = expressionStatement(parser, scanner);
 	}
 }
 
-static void instructionStatement(Parser* parser, Scanner* scanner, VM* vm)
+static void instructionStatement(Parser* parser, Scanner* scanner)
 {
 	advance(parser, scanner);
 	
@@ -109,7 +106,7 @@ static void instructionStatement(Parser* parser, Scanner* scanner, VM* vm)
 	}
 }
 
-static void labelStatement(Parser* parser, Scanner* scanner, VM* vm)
+static void labelStatement(Parser* parser, Scanner* scanner)
 {
 	char* word = (char*)malloc((parser->previous.length + 1) * sizeof(char));
 	word = parser->previous.start;
@@ -119,10 +116,8 @@ static void labelStatement(Parser* parser, Scanner* scanner, VM* vm)
 	{
 		advance(parser, scanner);
 
-		// do something here
-		addToTable(vm->table, word, parser->current.start);
 	}
-	instructionStatement(parser, scanner, vm);
+	instructionStatement(parser, scanner);
 }
 
 Parser* initParser(char** instructions, char** instruction_values, char** registers, char** register_values, int size)
@@ -138,16 +133,24 @@ Parser* initParser(char** instructions, char** instruction_values, char** regist
 	}
 }
 
-void parse(Parser* parser, Scanner* scanner, VM* vm)
+void parse(Parser* parser, Scanner* scanner)
 {
 	advance(parser, scanner);
 
-	if(parser.previous == TOKEN_LABEL)
+	if(parser.previous == TOKEN_SECTION)
 	{
-		labelStatement(parser, scanner, vm);
+		newSection(parser, scanner);
+	}
+	else if(parser.previous == TOKEN_ENTRY)
+	{
+		programEntry(parser, scanner);
+	}
+	else if(parser.previous == TOKEN_LABEL)
+	{
+		labelStatement(parser, scanner);
 	}
 	else
 	{	
-		instructionStatement(parser, scanner, vm);
+		instructionStatement(parser, scanner);
 	}
 }
