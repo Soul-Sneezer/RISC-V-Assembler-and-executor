@@ -23,7 +23,7 @@ typedef struct
 	Table* registers;
 } Parser;
 
-Parser* initParser(char** instructions, char** instruction_values, char** registers, char** register_values, const char* header_file, const char* code_file, int size);
+Parser* initParser(char** instructions, char** instruction_values, char** registers, char** register_values, const char* header_file, const char* code_file, int i_size, int r_size);
 void freeParser(Parser* parser);
 
 void parse(Parser* parser, Scanner* scanner);

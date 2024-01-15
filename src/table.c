@@ -189,17 +189,18 @@ bool addStringToTable(Table* table, char* key, char* value)
 	return is_new_entry;
 }
 
-/*
+/* for testing
 int main()
 {
 	Table* t;
 	initTable(&t);
-	char* hey = "hey jealousy";
-	addStringToTable(t, "add", hey);
+	char* hey = "0000";
+	char* key = "beqz";
+	addStringToTable(t, key, hey);
 	//addValueToTable(t, "add", 3, 200);
-	char* str = getStringFromTable(t, "add");
 	//Entry* entry = findEntry(t->entries, t->size, "add", 3, hashString("add", 3));
-	printf("%s", getStringFromTable(t, "add"));
+	char* str = getStringFromTable(t, key);
+	printf("%s", str);
 	freeTable(t);
 }
 */

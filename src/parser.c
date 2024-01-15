@@ -75,7 +75,7 @@ static void writeByte(uint8_t byte, FILE* fd)
 	fwrite(&byte, 1, 1, fd);
 }
 
-static void writeByteAsChar(uint8_t byte, FILE* fd)
+static void writeByteAsChars(uint8_t byte, FILE* fd)
 {
 	byte = invertByte(byte);	
 
@@ -122,7 +122,7 @@ static uint32_t reg(Parser* parser, Scanner* scanner)
 	if(getValueFromTable(parser->registers, lexeme) != -1)
 	{
 		writeByte(index, parser->code_fd);
-		writeByteAsChar(index, parser->tcode_fd);
+		writeByteAsChars(index, parser->tcode_fd);
 	}
 	else
 	{
@@ -155,9 +155,9 @@ static uint32_t immediate(Parser* parser)
 	writeByte(value >> 8 & 0xFF, parser->code_fd);
 	writeByte(value & 0xFF, parser->code_fd);
 
-	writeByteAsChar(value >> 16 & 0xFF, parser->tcode_fd);
-	writeByteAsChar(value >> 8 & 0xFF, parser->tcode_fd);
-	writeByteAsChar(value & 0xFF, parser->tcode_fd);
+	writeByteAsChars(value >> 16 & 0xFF, parser->tcode_fd);
+	writeByteAsChars(value >> 8 & 0xFF, parser->tcode_fd);
+	writeByteAsChars(value & 0xFF, parser->tcode_fd);
 }
 
 static void expressionStatement(Parser* parser, Scanner* scanner)
@@ -166,11 +166,13 @@ static void expressionStatement(Parser* parser, Scanner* scanner)
 	// it's either a register, or an immediate, or memory
 	if(check(parser, TOKEN_LEFT_PAREN))
 	{
+		immediate(parser);
 		advance(parser, scanner);
 		memoryAccess(parser, scanner);
 	}
 	else if(check(parser, TOKEN_IMMEDIATE)) // there must be a minus before
 	{
+		advance(parser, scanner);
 		immediate(parser);
 	}
 	else if(parser->previous.type == TOKEN_IMMEDIATE)
@@ -184,7 +186,9 @@ static void expressionStatement(Parser* parser, Scanner* scanner)
 	else
 	{
 		error(parser, scanner, "Wrong operand types.");
+		return;
 	}
+	advance(parser, scanner);
 }
 
 static void commaStatement(Parser* parser, Scanner* scanner)
@@ -210,7 +214,7 @@ static void instructionStatement(Parser* parser, Scanner* scanner)
 		if((instr = getValueFromTable(parser->instructions, lexeme)) != -1)
 		{
 			writeByte(instr, parser->code_fd);
-			writeByteAsChar(instr, parser->tcode_fd);
+			writeByteAsChars(instr, parser->tcode_fd);
 		}
 		else
 		{
@@ -289,21 +293,15 @@ void openHeaderTestFile(Parser* parser, const char* header_file)
 	parser->theader_fd = fd;
 }
 
-Parser* initParser(char** instructions, char** instruction_values, char** registers, char** register_values, const char* header_file, const char* code_file, int size)
+Parser* initParser(char** instructions, char** instruction_values, char** registers, char** register_values, const char* header_file, const char* code_file, int i_size, int r_size)
 {
 	Parser* parser = (Parser*)malloc(sizeof(Parser));
 
-	createInstructionTable(parser, size, instructions, instruction_values);
-	createRegisterTable(parser, size, registers, register_values);
+	initTable(&parser->instructions);
+	initTable(&parser->registers);
 
-	initTable(parser->instructions);
-	initTable(parser->registers);
-	
-	for(int i = 0; i < size; i++)
-	{
-		addStringToTable(parser->instructions, instructions[i], instruction_values[i]);
-		addStringToTable(parser->registers, registers[i], register_values[i]);
-	}
+	createInstructionTable(parser, i_size, instructions, instruction_values);
+	createRegisterTable(parser, r_size, registers, register_values);
 
 	openCodeFile(parser, code_file);
 	openHeaderFile(parser, header_file);
