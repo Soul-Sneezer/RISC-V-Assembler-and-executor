@@ -15,6 +15,7 @@ Things that need to be done:
   5) Implement proper error reporting
   6) Fix known memory leaks(there are many)
   7) Properly test the program
+  8) Make a proper documentation for the code
 
 Lessons learned:
   1) 
