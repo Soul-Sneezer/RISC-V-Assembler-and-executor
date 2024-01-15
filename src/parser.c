@@ -92,6 +92,26 @@ static void writeByteAsChars(uint8_t byte, FILE* fd)
 			fprintf(fd, "0");
 		byte >>= 1;
 	}
+
+	fprintf(fd, "\n");
+}
+
+static void writeChars(char* string, FILE* fd)
+{
+	int n = strlen(string);
+	char output[8];
+	for(int i = 0; i < 8; i++)
+	{
+		output[i] = '0';
+	}
+
+	for(int i = 0; i < n; i++)
+	{
+		output[i] = string[i];
+	}
+
+	fprintf(fd, "%s", output);
+	fprintf(fd, "\n");
 }
 
 static void consume(Parser* parser, Scanner* scanner, TokenType type, const char* message)
@@ -124,7 +144,8 @@ static uint32_t reg(Parser* parser, Scanner* scanner)
 	char* lexeme = (char*)malloc((parser->current.length + 1) * sizeof(char));
 	copyWord(&parser->current.start, &lexeme, parser->current.length);
 	lexeme[parser->current.length] = '\0';
-	if(getValueFromTable(parser->registers, lexeme) != -1)
+	int regist;
+	if((regist = getValueFromTable(parser->registers, lexeme)) != -1)
 	{
 		writeByte(index, parser->code_fd);
 		writeByteAsChars(index, parser->tcode_fd);
@@ -149,16 +170,16 @@ static void memoryAccess(Parser* parser, Scanner* scanner)
 	}
 }
 
-static uint32_t immediate(Parser* parser)
+static void immediate(Parser* parser)
 {
-	int value = 0;
-	for(int i = 0; i < parser->previous.length; i++)
+	uint32_t value = 0;
+	for(int i = 0; i < parser->current.length; i++)
 	{
-		value = value * 10 + (parser->previous.start[i] - '0');
+		value = value * 10 + (parser->current.start[i] - '0');
 	}
-	writeByte(value >> 16 & 0xFF, parser->code_fd);
-	writeByte(value >> 8 & 0xFF, parser->code_fd);
-	writeByte(value & 0xFF, parser->code_fd);
+	writeByte(value >> 16 & 0xFFFFFFFF, parser->code_fd);
+	writeByte(value >> 8 & 0xFFFFFFFF, parser->code_fd);
+	writeByte(value & 0xFFFFFFFF, parser->code_fd);
 
 	writeByteAsChars(value >> 16 & 0xFF, parser->tcode_fd);
 	writeByteAsChars(value >> 8 & 0xFF, parser->tcode_fd);
@@ -229,11 +250,12 @@ static void instructionStatement(Parser* parser, Scanner* scanner)
 	{
 		
 
-		int instr;
-		if((instr = getValueFromTable(parser->instructions, lexeme)) != -1)
+		char* instr;
+		if((instr = getStringFromTable(parser->instructions, lexeme)) != NULL)
 		{
-			writeByte(instr, parser->code_fd);
-			writeByteAsChars(instr, parser->tcode_fd);
+			//writeByte(instr, parser->code_fd);
+			//writeByteAsChars(instr, parser->tcode_fd);
+			writeChars(instr, parser->tcode_fd);
 		}
 		else
 		{
