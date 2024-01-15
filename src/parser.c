@@ -314,26 +314,29 @@ void freeParser(Parser* parser)
 
 void parse(Parser* parser, Scanner* scanner)
 {
-	advance(parser, scanner);
+	while(parser->current.type != TOKEN_EOF)
+	{
+		advance(parser, scanner);
 
-	if(check(parser, TOKEN_SECTION))
-	{
-		newSection(parser, scanner);
-	}
-	else if(check(parser, TOKEN_ENTRY))
-	{
-		programEntry(parser, scanner);
-	}
-	else if(check(parser, TOKEN_LABEL))
-	{
-		labelStatement(parser, scanner);
-	}
-	else if(check(parser, TOKEN_INSTRUCTION))
-	{	
-		instructionStatement(parser, scanner);
-	}
-	else
-	{
-		error(parser, scanner, "Unknown keyword.");
+		if(check(parser, TOKEN_SECTION))
+		{
+			newSection(parser, scanner);
+		}
+		else if(check(parser, TOKEN_ENTRY))
+		{
+			programEntry(parser, scanner);
+		}
+		else if(check(parser, TOKEN_LABEL))
+		{
+			labelStatement(parser, scanner);
+		}
+		else if(check(parser, TOKEN_INSTRUCTION))
+		{	
+			instructionStatement(parser, scanner);
+		}
+		else
+		{
+			error(parser, scanner, "Unknown keyword.");
+		}
 	}
 }
