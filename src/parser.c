@@ -204,8 +204,6 @@ static void commaStatement(Parser* parser, Scanner* scanner)
 
 static void instructionStatement(Parser* parser, Scanner* scanner)
 {
-	advance(parser, scanner);
-	
 	if(check(parser, TOKEN_INSTRUCTION))
 	{
 		char* lexeme = (char*)malloc((parser->current.length + 1) * sizeof(char));
@@ -230,12 +228,12 @@ static void instructionStatement(Parser* parser, Scanner* scanner)
 
 static void labelStatement(Parser* parser, Scanner* scanner)
 {
-	char* word = (char*)malloc((parser->previous.length + 1) * sizeof(char));
-	word = parser->previous.start;
+	char* word = (char*)malloc((parser->current.length + 1) * sizeof(char));
+	word = parser->current.start;
 	word[parser->current.length] = '\0';
 
 	// add label to header
-
+	advance(parser, scanner);
 	instructionStatement(parser, scanner);
 }
 
@@ -318,20 +316,24 @@ void parse(Parser* parser, Scanner* scanner)
 {
 	advance(parser, scanner);
 
-	if(parser->previous.type == TOKEN_SECTION)
+	if(check(parser, TOKEN_SECTION))
 	{
 		newSection(parser, scanner);
 	}
-	else if(parser->previous.type == TOKEN_ENTRY)
+	else if(check(parser, TOKEN_ENTRY))
 	{
 		programEntry(parser, scanner);
 	}
-	else if(parser->previous.type == TOKEN_LABEL)
+	else if(check(parser, TOKEN_LABEL))
 	{
 		labelStatement(parser, scanner);
 	}
-	else
+	else if(check(parser, TOKEN_INSTRUCTION))
 	{	
 		instructionStatement(parser, scanner);
+	}
+	else
+	{
+		error(parser, scanner, "Unknown keyword.");
 	}
 }
