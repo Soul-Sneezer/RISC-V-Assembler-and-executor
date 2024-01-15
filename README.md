@@ -17,9 +17,6 @@ Things that need to be done:
   7) Properly test the program
   8) Make a proper documentation for the code
 
-Lessons learned:
-  1) 
-
 References: 
   Crafting Interpreters - Robert Nystrom (great book)  
   https://www.youtube.com/watch?v=B3y0RsVCyrw  
