@@ -33,6 +33,7 @@ uint32_t hashString(char* s, int n);
 Entry* findEntry(Entry* entries, int size, char* s, int n, uint32_t hash);
 bool findInTable(Table* table, char* s, int* value);
 bool addToTable(Table* table, char* key, int n);
+bool addValueToTable(Table* table, char* key, int n);
 bool addStringToTable(Table* table, char* key, char* value);
 void freeTable(Table* table);
 int getValueFromTable(Table* table, char* key);
