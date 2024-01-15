@@ -12,7 +12,7 @@ Things that need to be done:
   2) Write to object files
   3) Make the above more efficient (waste less space)
   4) Finish the VM(basically the executor)
-  5) Implemenet proper error reporting.
+  5) Implement proper error reporting
   6) Fix known memory leaks(there are many)
   7) Properly test the program
 
