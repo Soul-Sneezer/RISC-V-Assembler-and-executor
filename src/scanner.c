@@ -118,11 +118,11 @@ static TokenType identifierType(Scanner* scanner)
 	}
 	toLowercase(&word);
 
-	if(findWord(scanner->instructions, word))
+	if(findWord(scanner->instructions, word) != -1)
 		return TOKEN_INSTRUCTION;
 
 	// check if it's a register
-	if(findWord(scanner->registers, word))
+	if(findWord(scanner->registers, word) != -1)
 		return TOKEN_REGISTER;
 
 	bool immediate = true;
@@ -131,8 +131,10 @@ static TokenType identifierType(Scanner* scanner)
 		if(!isDigit(word[i]))
 			immediate = false;
 	}
+
 	if(immediate)
 		return TOKEN_IMMEDIATE;
+
 	return TOKEN_LABEL; // otherwise it's a label of some kind
 }
 
@@ -248,15 +250,18 @@ int main(int argc, char* argv[])
 	int size = 0;
 	char** words = (char**)malloc(256 * sizeof(char*));
 	char** values = (char**)malloc(256 * sizeof(char*));
-	words = importFile("instructions.txt", &size, words, &values);
+	importFile("instructions.txt", &size, &words, &values);
 	scanner->instructions = getNode();
 	createTrie(scanner->instructions, words, size);
-
-	words = importFile("registers.txt", &size, words, &values);
+	
+	importFile("registers.txt", &size, &words, &values);
 	scanner->registers = getNode();
 
 	createTrie(scanner->registers, words, size);
-
+for(int i = 0; i < size; i++)
+	{
+		printf("%s\n", words[i]);
+	}
 	Token token;
 	//token = scanToken(scanner);
 	//token = scanToken(scanner);
@@ -264,7 +269,59 @@ int main(int argc, char* argv[])
 	{
 		for(int i = 0; i < token.length; i++)
 			printf("%c", token.start[i]);
-		printf(" ");
+		printf(" : ");
+		int type = token.type;
+		switch(type)
+		{
+			case 0:
+				printf("TOKEN_INSTRUCTION\n");
+				break;
+			case 1:
+				printf("TOKEN_REGISTER\n");
+				break;
+			case 2:
+				printf("TOKEN_IMMEDIATE\n");
+				break;
+			case 3:
+				printf("TOKEN_LABEL\n");
+				break;
+			case 4:
+				printf("TOKEN_STRING\n");
+				break;
+			case 5:
+				printf("TOKEN_COMMA\n");
+				break;
+			case 6:
+				printf("TOKEN_CONSTANT\n");
+				break;
+			case 7:
+				printf("TOKEN_ERR\n");
+				break;
+			case 8:
+				printf("TOKEN_EOF\n");
+				break;
+			case 9:
+				printf("TOKEN_SECTION\n");
+				break;
+			case 10:
+				printf("TOKEN_ENTRY\n");
+				break;
+			case 11:
+				printf("TOKEN_LEFT_PAREN\n");
+				break;
+			case 12:
+				printf("TOKEN_RIGHT_PAREN\n");
+				break;
+			case 13:
+				printf("TOKEN_MINUS\n");
+				break;
+			case 14:
+				printf("TOKEN_SPACE\n");
+				break;
+			case 15:
+				printf("TOKEN_ASCIZ\n");
+				break;
+		}
 	}
 }
 */
