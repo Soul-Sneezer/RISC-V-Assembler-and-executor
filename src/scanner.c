@@ -200,6 +200,7 @@ Token scanToken(Scanner* scanner)
 				}
 			}
 			Token token = makeToken(scanner, TOKEN_SECTION);
+			scanner->line++;
 			if(!isSection)
 				token.type = TOKEN_ENTRY;
 			advance(scanner);
@@ -267,6 +268,7 @@ for(int i = 0; i < size; i++)
 	//token = scanToken(scanner);
 	while((token = scanToken(scanner)).type != TOKEN_EOF)
 	{
+		printf("%d ", token.line);
 		for(int i = 0; i < token.length; i++)
 			printf("%c", token.start[i]);
 		printf(" : ");
