@@ -4,6 +4,7 @@
 #include "parser.h"
 #include "scanner.h"
 #include "debug.h"
+#include "common.h"
 
 static void skipLine(Parser* parser, Scanner* scanner);
 
@@ -184,18 +185,32 @@ static void expressionStatement(Parser* parser, Scanner* scanner)
 	{
 		reg(parser, scanner);
 	}
+	else if(check(parser, TOKEN_LABEL))
+	{
+		// then it's either an error(that will be detected at runtime) or control flow
+	}
+	else if(check(parser, TOKEN_EOF))
+	{
+		// either a ret instruction or an error
+		return;
+	}
 	else
 	{
 		//token_info(parser->current);
 		errorAtCurrent(parser, scanner, "Wrong operand types.");
 	}
+
 	advance(parser, scanner);
+	if(check(parser, TOKEN_LEFT_PAREN))
+	{
+		advance(parser, scanner);
+		memoryAccess(parser, scanner);
+	}
 }
 
 static void commaStatement(Parser* parser, Scanner* scanner)
 {
 	expressionStatement(parser, scanner);
-
 	while(check(parser, TOKEN_COMMA))
 	{
 		advance(parser, scanner);
@@ -245,10 +260,12 @@ static void labelStatement(Parser* parser, Scanner* scanner)
 
 static void newSection(Parser* parser, Scanner* scanner)
 {
+	advance(parser, scanner);
 }
 
 static void programEntry(Parser* parser, Scanner* scanner)
 {
+	advance(parser, scanner);
 }
 
 static void createInstructionTable(Parser* parser, int size, char** instructions, char** values)
@@ -320,10 +337,11 @@ void freeParser(Parser* parser)
 
 void parse(Parser* parser, Scanner* scanner)
 {
+	advance(parser, scanner);
+
 	while(!check(parser, TOKEN_EOF))
 	{
-		advance(parser, scanner);
-		
+			
 		if(check(parser, TOKEN_SECTION))
 		{
 			newSection(parser, scanner);
