@@ -21,6 +21,8 @@ typedef struct
 	FILE* theader_fd;
 	Table* instructions;	// used to convert from the token to the proper bytecode
 	Table* registers;
+	int header_entries;
+
 } Parser;
 
 Parser* initParser(char** instructions, char** instruction_values, char** registers, char** register_values, const char* header_file, const char* code_file, int i_size, int r_size);
