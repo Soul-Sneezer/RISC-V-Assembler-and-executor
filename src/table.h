@@ -28,7 +28,7 @@ typedef struct
 	Entry* entries;
 } Table;
 
-void initTable(Table* table);
+void initTable(Table** table);
 uint32_t hashString(char* s, int n);
 Entry* findEntry(Entry* entries, int size, char* s, int n, uint32_t hash);
 bool findInTable(Table* table, char* s, int* value);

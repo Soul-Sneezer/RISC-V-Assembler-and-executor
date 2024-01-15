@@ -6,19 +6,18 @@
 #include "table.h"
 #include "common.h"
 
-Table t;
-
-void initTable(Table* table)
+void initTable(Table** table)
 {
-	table->size = 0;
-	table->count = 0;
-	table->entries = NULL; 
+	*table = (Table*)malloc(sizeof(Table));
+	(*table)->size = 0;
+	(*table)->count = 0;
+	(*table)->entries = NULL; 
 }
 
 void freeTable(Table* table)
 {
 	free(table->entries);
-	initTable(table);
+	initTable(&table);
 }
 
 uint32_t hashString(char* s, int n)
@@ -26,7 +25,7 @@ uint32_t hashString(char* s, int n)
 	uint32_t hash = 2166136261u;
 	for (int i = 0; i < n; i++)
 	{
-		hash ^= (uint8_t)s[i];
+		hash ^= s[i];
 		hash *= 16777619;
 	}
 
@@ -54,11 +53,13 @@ char* getStringFromTable(Table* table, char* key)
 
 Entry* findEntry(Entry* entries, int size, char* s, int n, uint32_t hash)
 {
+	if(size == 0)
+		return NULL;
 	uint32_t index = hash % size;
 	for (;;)
 	{
 		Entry* entry = &entries[index];
-		if (entry->key == NULL)
+		if (entry == NULL || entry->key == NULL)
 		{
 			return entry;
 		}
@@ -190,11 +191,12 @@ bool addStringToTable(Table* table, char* key, char* value)
 /* for testing
 int main()
 {
+	Table* t;
 	initTable(&t);
-	printf("%d", addToTable(&t, "add", 3, -211));
-	addToTable(&t, "add", 3, 200);
-	Entry* entry = findEntry(&t, "add", 3, hashString("add",3));
+	printf("%d", addValueToTable(t, "add", 3, -211));
+	addValueToTable(t, "add", 3, 200);
+	Entry* entry = findEntry(t->entries, t->size, "add", 3, hashString("add", 3));
 	printf("%d", (entry->as.integer));
-	freeTable(&t);
+	freeTable(t);
 }
 */
