@@ -27,11 +27,4 @@ Parser* initParser(char** instructions, char** instruction_values, char** regist
 void freeParser(Parser* parser);
 
 void parse(Parser* parser, Scanner* scanner);
-//void createInstructionTable(Parser* parser, int size, char** words, char** values);
-//void createRegisterTable(Parser* parser, int size, char** words, char** values);
-//void openCodeFile(const char* code_file);
-//void openHeaderFile(const char* header_file);
-
-//void openCodeTestFile(const char* code_file);
-//void openHeaderTestFile(const char* header_file);
 #endif
