@@ -99,10 +99,10 @@ static void skipWhitespace(char* buffer, int* index)
 	}
 }
 
-char** importFile(const char* path, int* size, char** s, char*** values) // I'm not proud of this
+void importFile(const char* path, int* size, char*** strings, char*** values) // I'm not proud of this
 {
 	bool value = false;
-	char** strings = (char**)malloc(256 * sizeof(char*));
+	*strings = (char**)malloc(256 * sizeof(char*));
 	*values = (char**)malloc(256 * sizeof(char*));
 	char* buffer = readFile(path);
 	int index = 0;
@@ -119,7 +119,7 @@ char** importFile(const char* path, int* size, char** s, char*** values) // I'm 
 			if(new_string != NULL)
 			{
 				if(!value)
-					strings[index] = new_string;
+					(*strings)[index] = new_string;
 				else
 					(*values)[index++] = new_string;
 			}
@@ -135,5 +135,12 @@ char** importFile(const char* path, int* size, char** s, char*** values) // I'm 
 		}
 	}
 	*size = index;
-	return strings;
+}
+
+void copyWord(char** from, char** to, int length)
+{
+	for(int i = 0; i < length; i++)
+	{
+		(*to)[i] = (*from)[i];
+	}
 }

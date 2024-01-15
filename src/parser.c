@@ -3,17 +3,18 @@
 #include <stdlib.h>
 #include "parser.h"
 #include "scanner.h"
+#include "debug.h"
 
 static void skipLine(Parser* parser, Scanner* scanner);
 
 static void errorAt(Parser* parser, Scanner* scanner, Token token, const char* message)
 {
 	fprintf(stderr, "[line %d] Error", token.line);
-	if (token.type == TOKEN_EOF)
-	{
-		fprintf(stderr, " at end");
-	}
-	else if (token.type == TOKEN_ERR)
+	//if (token.type == TOKEN_EOF)
+	//{
+	//	fprintf(stderr, " at end");
+	//}
+	if (token.type == TOKEN_ERR)
 	{
 	}
 	else
@@ -42,6 +43,9 @@ static void advance(Parser* parser, Scanner* scanner)
 	for (;;)
 	{
 		parser->current = scanToken(scanner);
+		token_info(parser->current);
+		if(parser->current.type == TOKEN_EOF)
+			return;
 		if(parser->current.type != TOKEN_ERR)
 			break;
 
@@ -52,7 +56,7 @@ static void advance(Parser* parser, Scanner* scanner)
 static void skipLine(Parser* parser, Scanner* scanner)
 {
 	int line = parser->current.line;
-	while(parser->current.line == line)
+	while(parser->current.type != TOKEN_EOF && parser->current.line == line)
 		advance(parser, scanner);
 }
 
@@ -116,9 +120,9 @@ static bool match(char* instruction, int start, char* pattern, int length)
 static uint32_t reg(Parser* parser, Scanner* scanner)
 {
 	int index;
-	char* lexeme = (char*)malloc((parser->previous.length + 1) * sizeof(char));
-	lexeme = parser->previous.start;
-	lexeme[parser->previous.length] = '\0';
+	char* lexeme = (char*)malloc((parser->current.length + 1) * sizeof(char));
+	copyWord(&parser->current.start, &lexeme, parser->current.length);
+	lexeme[parser->current.length] = '\0';
 	if(getValueFromTable(parser->registers, lexeme) != -1)
 	{
 		writeByte(index, parser->code_fd);
@@ -162,31 +166,28 @@ static uint32_t immediate(Parser* parser)
 
 static void expressionStatement(Parser* parser, Scanner* scanner)
 {
-	advance(parser, scanner);
 	// it's either a register, or an immediate, or memory
 	if(check(parser, TOKEN_LEFT_PAREN))
 	{
-		immediate(parser);
 		advance(parser, scanner);
 		memoryAccess(parser, scanner);
 	}
 	else if(check(parser, TOKEN_IMMEDIATE)) // there must be a minus before
 	{
-		advance(parser, scanner);
 		immediate(parser);
 	}
-	else if(parser->previous.type == TOKEN_IMMEDIATE)
+	else if(check(parser, TOKEN_MINUS))
 	{
 		immediate(parser);	
 	}
-	else if(parser->previous.type == TOKEN_REGISTER)
+	else if(check(parser, TOKEN_REGISTER))
 	{
 		reg(parser, scanner);
 	}
 	else
 	{
-		error(parser, scanner, "Wrong operand types.");
-		return;
+		//token_info(parser->current);
+		errorAtCurrent(parser, scanner, "Wrong operand types.");
 	}
 	advance(parser, scanner);
 }
@@ -204,10 +205,15 @@ static void commaStatement(Parser* parser, Scanner* scanner)
 
 static void instructionStatement(Parser* parser, Scanner* scanner)
 {
+	char* lexeme = (char*)malloc((parser->current.length + 1) * sizeof(char));
+	lexeme[parser->current.length] = '\0';
+
+	copyWord(&parser->current.start, &lexeme, parser->current.length);
+
 	if(check(parser, TOKEN_INSTRUCTION))
 	{
-		char* lexeme = (char*)malloc((parser->current.length + 1) * sizeof(char));
-		lexeme[parser->current.length] = '\0';
+		
+
 		int instr;
 		if((instr = getValueFromTable(parser->instructions, lexeme)) != -1)
 		{
@@ -218,6 +224,7 @@ static void instructionStatement(Parser* parser, Scanner* scanner)
 		{
 			errorAtCurrent(parser, scanner, "Invalid instruction.");
 		}
+		advance(parser, scanner);
 		commaStatement(parser, scanner);
 	}
 	else
@@ -229,9 +236,8 @@ static void instructionStatement(Parser* parser, Scanner* scanner)
 static void labelStatement(Parser* parser, Scanner* scanner)
 {
 	char* word = (char*)malloc((parser->current.length + 1) * sizeof(char));
-	word = parser->current.start;
+	copyWord(&parser->current.start, &word, parser->current.length);
 	word[parser->current.length] = '\0';
-
 	// add label to header
 	advance(parser, scanner);
 	instructionStatement(parser, scanner);
@@ -314,10 +320,10 @@ void freeParser(Parser* parser)
 
 void parse(Parser* parser, Scanner* scanner)
 {
-	while(parser->current.type != TOKEN_EOF)
+	while(!check(parser, TOKEN_EOF))
 	{
 		advance(parser, scanner);
-
+		
 		if(check(parser, TOKEN_SECTION))
 		{
 			newSection(parser, scanner);
