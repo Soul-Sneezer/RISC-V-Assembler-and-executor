@@ -117,7 +117,7 @@ static void writeByteAsChars(uint8_t byte, FILE* fd, bool invert)
 	fprintf(fd, "\n");
 }
 
-static void writeToBuffer(Parser* parser, uint8_t number_of_bits, uint8_t byte)
+static void writeToBuffer(Parser* parser, uint8_t byte, uint8_t number_of_bits)
 {
 	// can't write more than 8 bits at once
 	for(int i = 0; i < number_of_bits; i++)
@@ -125,13 +125,14 @@ static void writeToBuffer(Parser* parser, uint8_t number_of_bits, uint8_t byte)
 		if(parser->buffer->current >= 8) // the buffer is full
 		{
 			parser->current_byte++;
-			writeByte(parser->buffer->byte, parser->code_fd, false);
-			writeByteAsChars(parser->buffer->byte, parser->tcode_fd, false);
+			writeByte(parser->buffer->byte, parser->code_fd, true);
+			writeByteAsChars(parser->buffer->byte, parser->tcode_fd, true);
 			parser->buffer->byte = 0;
 			parser->buffer->current = 0;					// now it's empty
 		}
 		parser->buffer->byte <<= 1;
 		parser->buffer->byte |= byte & 0x1;
+		parser->buffer->current++;
 		byte >>= 1;
 	}
 }
@@ -154,7 +155,8 @@ static void createInstrFromChars(Parser* parser, char* word)
 		if(output[i] == '1')
 			byte += 1;
 	}
-	
+	byte = invertByte(byte);
+	byte >>= (8 - n);
 	writeToBuffer(parser, byte, n);
 }
 static void addToHeader(Parser* parser)
@@ -165,6 +167,11 @@ static void addToHeader(Parser* parser)
 
 	writeWord(word, parser->header_fd);
 	parser->header_entries++;
+}
+
+static void addValueToHeader(Parser* parser, uint8_t byte)
+{
+	writeByte(byte, parser->header_fd, true);
 }
 
 static void consume(Parser* parser, Scanner* scanner, TokenType type, const char* message)
@@ -200,6 +207,8 @@ static uint32_t reg(Parser* parser, Scanner* scanner)
 	int regist;
 	if((regist = getValueFromTable(parser->registers, lexeme)) != -1)
 	{
+		regist = invertByte(regist);
+		regist >>= 2;
 		writeToBuffer(parser, regist, 6);
 	}
 	else
@@ -229,9 +238,9 @@ static void immediate(Parser* parser)
 	{
 		value = value * 10 + (parser->current.start[i] - '0');
 	}
-	writeToBuffer(parser, value >> 16 & 0xFF, 2);
-	writeToBuffer(parser, value >> 8 & 0xFFFFFFFF, 8);
-	writeToBuffer(parser, value & 0xFFFFFFFF, 8);
+	writeToBuffer(parser, invertByte(value >> 16 & 0x3) >> 6, 2);
+	writeToBuffer(parser, invertByte(value >> 8 & 0xFF), 8);
+	writeToBuffer(parser, invertByte(value & 0xFF), 8);
 }
 
 static void expressionStatement(Parser* parser, Scanner* scanner)
@@ -257,8 +266,8 @@ static void expressionStatement(Parser* parser, Scanner* scanner)
 	else if(check(parser, TOKEN_LABEL))
 	{
 		// then it's either an error(that will be detected at runtime) or control flow
-		writeToBuffer(parser, parser->header_entries , 8);
-		writeToBuffer(parser, parser->header_entries , 8);
+		writeToBuffer(parser, invertByte(parser->header_entries >> 8), 8);
+		writeToBuffer(parser, invertByte(parser->header_entries) , 8);
 
 		addToHeader(parser);
 
@@ -324,6 +333,9 @@ static void instructionStatement(Parser* parser, Scanner* scanner)
 static void labelStatement(Parser* parser, Scanner* scanner)
 {
 	addToHeader(parser);
+	addValueToHeader(parser, parser->current_byte >> 8);
+	addValueToHeader(parser, parser->current_byte & 0xFF);
+	addValueToHeader(parser, parser->buffer->current);
 	advance(parser, scanner);
 	instructionStatement(parser, scanner);
 }
@@ -405,6 +417,7 @@ Parser* initParser(char** instructions, char** instruction_values, char** regist
 	parser->current_byte = 0;
 	parser->buffer = (Buffer*)malloc(sizeof(Buffer));
 	parser->buffer->current = 0;
+	parser->buffer->byte = 0;
 	parser->header_entries = 0;
 }
 
@@ -440,4 +453,6 @@ void parse(Parser* parser, Scanner* scanner)
 			error(parser, scanner, "Unknown keyword.");
 		}
 	}
+
+	writeToBuffer(parser, 0, 8);
 }
