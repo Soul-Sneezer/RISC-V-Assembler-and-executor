@@ -74,9 +74,12 @@ static uint8_t invertByte(uint8_t byte)
 	return inverse_byte;
 }
 
-static void writeByte(uint8_t byte, FILE* fd)
+
+
+static void writeByte(uint8_t byte, FILE* fd, bool invert)
 {
-	byte = invertByte(byte);
+	if(invert)
+		byte = invertByte(byte);
 	fwrite(&byte, 1, 1, fd);
 }
 
@@ -97,9 +100,10 @@ static void writeWord(char* word, FILE* fd)
 	fwrite(&byte, 1, 1, fd); // closing quote mark
 }
 
-static void writeByteAsChars(uint8_t byte, FILE* fd)
+static void writeByteAsChars(uint8_t byte, FILE* fd, bool invert)
 {
-	byte = invertByte(byte);	
+	if(invert)
+		byte = invertByte(byte);	
 
 	for(int i = 0; i < 8; i++)
 	{
@@ -113,9 +117,28 @@ static void writeByteAsChars(uint8_t byte, FILE* fd)
 	fprintf(fd, "\n");
 }
 
-static void writeChars(char* string, FILE* fd, FILE* byte_fd)
+static void writeToBuffer(Parser* parser, uint8_t number_of_bits, uint8_t byte)
 {
-	int n = strlen(string);
+	// can't write more than 8 bits at once
+	for(int i = 0; i < number_of_bits; i++)
+	{
+		if(parser->buffer->current >= 8) // the buffer is full
+		{
+			parser->current_byte++;
+			writeByte(parser->buffer->byte, parser->code_fd, false);
+			writeByteAsChars(parser->buffer->byte, parser->tcode_fd, false);
+			parser->buffer->byte = 0;
+			parser->buffer->current = 0;					// now it's empty
+		}
+		parser->buffer->byte <<= 1;
+		parser->buffer->byte |= byte & 0x1;
+		byte >>= 1;
+	}
+}
+
+static void createInstrFromChars(Parser* parser, char* word)
+{
+	int n = strlen(word);
 
 	uint8_t byte = 0;
 	char output[8];
@@ -126,17 +149,14 @@ static void writeChars(char* string, FILE* fd, FILE* byte_fd)
 
 	for(int i = 0; i < n; i++)
 	{
-		output[i] = string[i];
+		output[i] = word[i];
 		byte <<= 1;
 		if(output[i] == '1')
 			byte += 1;
 	}
 	
-	writeByte(byte, byte_fd);
-	fprintf(fd, "%s", output);
-	fprintf(fd, "\n");
+	writeToBuffer(parser, byte, n);
 }
-
 static void addToHeader(Parser* parser)
 {
 	char* word = (char*)malloc((parser->current.length + 1) * sizeof(char));
@@ -180,8 +200,7 @@ static uint32_t reg(Parser* parser, Scanner* scanner)
 	int regist;
 	if((regist = getValueFromTable(parser->registers, lexeme)) != -1)
 	{
-		writeByte(regist, parser->code_fd);
-		writeByteAsChars(regist, parser->tcode_fd);
+		writeToBuffer(parser, regist, 6);
 	}
 	else
 	{
@@ -210,13 +229,9 @@ static void immediate(Parser* parser)
 	{
 		value = value * 10 + (parser->current.start[i] - '0');
 	}
-	writeByte(value >> 16 & 0xFFFFFFFF, parser->code_fd);
-	writeByte(value >> 8 & 0xFFFFFFFF, parser->code_fd);
-	writeByte(value & 0xFFFFFFFF, parser->code_fd);
-
-	writeByteAsChars(value >> 16 & 0xFF, parser->tcode_fd);
-	writeByteAsChars(value >> 8 & 0xFF, parser->tcode_fd);
-	writeByteAsChars(value & 0xFF, parser->tcode_fd);
+	writeToBuffer(parser, value >> 16 & 0xFF, 2);
+	writeToBuffer(parser, value >> 8 & 0xFFFFFFFF, 8);
+	writeToBuffer(parser, value & 0xFFFFFFFF, 8);
 }
 
 static void expressionStatement(Parser* parser, Scanner* scanner)
@@ -242,7 +257,9 @@ static void expressionStatement(Parser* parser, Scanner* scanner)
 	else if(check(parser, TOKEN_LABEL))
 	{
 		// then it's either an error(that will be detected at runtime) or control flow
-		writeByte(parser->header_entries ,parser->code_fd);
+		writeToBuffer(parser, parser->header_entries , 8);
+		writeToBuffer(parser, parser->header_entries , 8);
+
 		addToHeader(parser);
 
 	}
@@ -289,9 +306,7 @@ static void instructionStatement(Parser* parser, Scanner* scanner)
 		char* instr;
 		if((instr = getStringFromTable(parser->instructions, lexeme)) != NULL)
 		{
-			//writeByte(instr, parser->code_fd);
-			//writeByteAsChars(instr, parser->tcode_fd);
-			writeChars(instr, parser->tcode_fd, parser->code_fd);
+			createInstrFromChars(parser, instr);
 		}
 		else
 		{
@@ -387,6 +402,9 @@ Parser* initParser(char** instructions, char** instruction_values, char** regist
 	openCodeTestFile(parser, "code_not.ok");
 	openHeaderTestFile(parser, "header_send.kelp");
 
+	parser->current_byte = 0;
+	parser->buffer = (Buffer*)malloc(sizeof(Buffer));
+	parser->buffer->current = 0;
 	parser->header_entries = 0;
 }
 

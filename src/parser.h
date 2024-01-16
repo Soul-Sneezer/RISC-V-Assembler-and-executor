@@ -11,6 +11,12 @@
 
 typedef struct
 {
+	uint8_t current;
+	uint8_t byte;
+} Buffer; // when it's full or you've reached EOF, flush to file
+
+typedef struct
+{
 	Token current;
 	Token previous;
 
@@ -23,6 +29,8 @@ typedef struct
 	Table* registers;
 	int header_entries;
 
+	int current_byte;
+	Buffer* buffer;
 } Parser;
 
 Parser* initParser(char** instructions, char** instruction_values, char** registers, char** register_values, const char* header_file, const char* code_file, int i_size, int r_size);
