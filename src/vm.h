@@ -11,7 +11,7 @@ typedef enum
 	OP_CALL, OP_RET, OP_ADD, OP_LI, OP_ADDI, OP_SFW, OP_LA, OP_J,
 } Opcodes;
 
-typedef Byte uint8_t;
+typedef uint8_t Byte;
 
 typedef struct
 {
