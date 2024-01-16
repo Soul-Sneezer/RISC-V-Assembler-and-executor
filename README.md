@@ -11,11 +11,12 @@ Things that need to be done:
   ~~1) Find out why the parser does not work~~  
   ~~2) Write to object files~~  
   3) Make the above more efficient (waste less space)  
-  4) Finish the VM(basically the executor)  
-  5) Implement proper error reporting  
-  6) Fix known memory leaks(there are many)  
-  7) Properly test the program  
-  8) Make a proper documentation for the code  
+  4) Finish the VM(basically the executor)
+  5) Implement data types(.space, .asciz, ...) 
+  6) Implement proper error reporting  
+  7) Fix known memory leaks(there are many)  
+  8) Properly test the program  
+  9) Make a proper documentation for the code  
 
 References: 
   Crafting Interpreters - Robert Nystrom (great book)  
