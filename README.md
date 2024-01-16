@@ -23,5 +23,3 @@ References:
   https://www.youtube.com/watch?v=B3y0RsVCyrw  
   https://www.geeksforgeeks.org/huffman-coding-greedy-algo-3/ (for generating the opcodes, at first I tried to implement it myself but it gave me the wrong output and I couldn't for the life of me figure out why, so I took the code from here)  
   https://www.youtube.com/watch?v=G7LJC9vJluU
-
-If I consume unholy amounts of coke and have a little bit of luck(meaning I don't discover yet another immense bug) I might finish it today.
