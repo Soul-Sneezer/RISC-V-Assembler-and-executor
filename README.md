@@ -8,9 +8,9 @@ Program structure: The project consists of 3 main files: the scanner and the par
 The scanner takes chars and generates tokens, the parser takes the tokens and if the everything is in order, generates binary code(ideally). The VM takes that binary code and executes it on the machine. 
 
 Things that need to be done:  
-  ~~1) Find out why the parser does not work~~  
-  ~~2) Write to object files~~  
-  3) Make the above more efficient (waste less space)  
+  1) ~~Find out why the parser does not work~~  
+  2) ~~Write to object files~~  
+  3) ~~Make the above more efficient (waste less space)~~  
   4) Finish the VM(basically the executor)
   5) Implement data types(.space, .asciz, ...) 
   6) Implement proper error reporting  
