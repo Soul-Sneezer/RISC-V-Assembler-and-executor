@@ -35,8 +35,12 @@ typedef struct
 	Byte* base_pointer;
 	Byte* stack_top;
 	Byte* heap;
+	int32_t heap_size;
+
 	Location* labels;
+
 	Byte* code;
+	int32_t code_size;
 } Memory;
 
 typedef struct 

@@ -24,18 +24,18 @@ static Byte getByte(VM* vm)
 	return NULL;
 }
 
-static Byte getBit(Byte byte, int index)
+static Byte getBit(Byte byte, int32_t index)
 {
 	return byte[index] & 0x1;
 }
 
-static Byte getRegister(int* starting_index)
+static Byte getRegister(int32_t* starting_index)
 {
 	if(*starting_index == 8)
 		*starting_index = 0;
 
-	int start = *starting_index;
-	int current_bit = 0;
+	int32_t start = *starting_index;
+	int32_t current_bit = 0;
 	uint8_t reg_index = 0;
 	while(current_bit - start != 6)
 	{
@@ -71,10 +71,10 @@ static void jumpToLocation(Byte* location)
 	vm->ip = location;
 }
 
-static int valueInRegister(uint8_t index);
+static int32_t valueInRegister(uint8_t index);
 static void setRegister(uint8_t index);
 
-static uint32_t unsig(int value);
+static uint32_t unsig(int32_t value);
 
 void execute(VM* vm)
 {
@@ -83,7 +83,7 @@ void execute(VM* vm)
 
 	Byte instruction = getByte(vm);
 	uint8_t index = 0;
-	int current_bit = 0;
+	int32_t current_bit = 0;
 	while(current_bit < 8 && instruction[index] == -1)
 	{
 		// find the instruction

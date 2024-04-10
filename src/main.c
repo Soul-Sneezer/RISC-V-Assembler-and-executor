@@ -17,15 +17,15 @@ ErrorType runFile(const char* source)
 {
 }
 
-int main(int argc, const char* argv[])
+int32_t main(int32_t argc, const char* argv[])
 {
 	if (argc == 2)
 	{
 		const char* source = readFile(argv[1]);
 		Scanner* scanner = initScanner(source);
 
-		int instructions_size;
-		int registers_size;
+		int32_t instructions_size;
+		int32_t registers_size;
 		char** instruction_names;
 		char** instruction_values;
 		importFile("instructions.txt", &instructions_size, &instruction_names, &instruction_values);

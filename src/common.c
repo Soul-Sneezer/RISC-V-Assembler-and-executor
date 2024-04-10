@@ -4,9 +4,9 @@
 #include <stdbool.h>
 #include "common.h"
 
-int parseNumber(char* buffer, int* index)
+int32_t parseNumber(char* buffer, int32_t* index)
 {
-	int number = 0;
+	int32_t number = 0;
 	while(buffer[*index] != '\0' && buffer[*index] != '\n')
 	{
 		number = number* 10 + (buffer[*index] - '0');
@@ -21,13 +21,13 @@ static bool isDelimiter(char c)
 	return (c == ' ' || c == ':' || c == '\t' || c == '\r' || c == '\n');
 }
 
-static char* getString(char* buffer, int* buf_index, int length)
+static char* getString(char* buffer, int32_t* buf_index, int32_t length)
 {
 	char* new_string;
 
 	new_string = (char*)malloc((length + 1) * sizeof(char));
 	new_string[length] = '\0';
-	for(int i = 0; i < length; i++)
+	for(int32_t i = 0; i < length; i++)
 	{
 		new_string[i] = buffer[*buf_index - length +  i];
 	}
@@ -57,14 +57,14 @@ void toLowercaseC(char* c)
 
 void toLowercase(char** s)
 {
-	for(int i = 0; (*s)[i] != '\0'; i++)
+	for(int32_t i = 0; (*s)[i] != '\0'; i++)
 	{
 		if((*s)[i] >= 'A' && (*s)[i] <= 'Z')
 			(*s)[i] += 32;
 	}
 }
 
-static void skipLine(char* buffer, int* index)
+static void skipLine(char* buffer, int32_t* index)
 {
 	for(;;)
 	{
@@ -76,7 +76,7 @@ static void skipLine(char* buffer, int* index)
 	}
 }
 
-static void skipWhitespace(char* buffer, int* index)
+static void skipWhitespace(char* buffer, int32_t* index)
 {
 	for(;;)
 	{
@@ -99,15 +99,15 @@ static void skipWhitespace(char* buffer, int* index)
 	}
 }
 
-void importFile(const char* path, int* size, char*** strings, char*** values) // I'm not proud of this
+void importFile(const char* path, int32_t* size, char*** strings, char*** values) // I'm not proud of this
 {
 	bool value = false;
 	*strings = (char**)malloc(256 * sizeof(char*));
 	*values = (char**)malloc(256 * sizeof(char*));
 	char* buffer = readFile(path);
-	int index = 0;
-	int buf_index = 0;
-	int length = 0;
+	int32_t index = 0;
+	int32_t buf_index = 0;
+	int32_t length = 0;
 
 	skipWhitespace(buffer, &buf_index);
 
@@ -137,9 +137,9 @@ void importFile(const char* path, int* size, char*** strings, char*** values) //
 	*size = index;
 }
 
-void copyWord(char** from, char** to, int length)
+void copyWord(char** from, char** to, int32_t length)
 {
-	for(int i = 0; i < length; i++)
+	for(int32_t i = 0; i < length; i++)
 	{
 		(*to)[i] = (*from)[i];
 	}

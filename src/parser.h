@@ -27,13 +27,13 @@ typedef struct
 	FILE* theader_fd;
 	Table* instructions;	// used to convert from the token to the proper bytecode
 	Table* registers;
-	int header_entries;
+	int32_t header_entries;
 
-	int current_byte;
+	int32_t current_byte;
 	Buffer* buffer;
 } Parser;
 
-Parser* initParser(char** instructions, char** instruction_values, char** registers, char** register_values, const char* header_file, const char* code_file, int i_size, int r_size);
+Parser* initParser(char** instructions, char** instruction_values, char** registers, char** register_values, const char* header_file, const char* code_file, int32_t i_size, int32_t r_size);
 void freeParser(Parser* parser);
 
 void parse(Parser* parser, Scanner* scanner);

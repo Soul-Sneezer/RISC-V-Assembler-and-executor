@@ -44,7 +44,7 @@ static void advance(Parser* parser, Scanner* scanner)
 	for (;;)
 	{
 		parser->current = scanToken(scanner);
-		token_info(parser->current);
+		tokenInfo(parser->current);
 		if(parser->current.type == TOKEN_EOF)
 			return;
 		if(parser->current.type != TOKEN_ERR)
@@ -56,7 +56,7 @@ static void advance(Parser* parser, Scanner* scanner)
 
 static void skipLine(Parser* parser, Scanner* scanner)
 {
-	int line = parser->current.line;
+	int32_t line = parser->current.line;
 	while(parser->current.type != TOKEN_EOF && parser->current.line == line)
 		advance(parser, scanner);
 }
@@ -64,7 +64,7 @@ static void skipLine(Parser* parser, Scanner* scanner)
 static uint8_t invertByte(uint8_t byte)
 {
 	uint8_t inverse_byte = 0;
-	for(int i = 0; i < 8; i++)
+	for(int32_t i = 0; i < 8; i++)
 	{
 		inverse_byte <<= 1;
 		inverse_byte += byte & 0x1;
@@ -85,12 +85,12 @@ static void writeByte(uint8_t byte, FILE* fd, bool invert)
 
 static void writeWord(char* word, FILE* fd)
 {
-	int n = strlen(word);
+	int32_t n = strlen(word);
 	
 	uint8_t byte = 34; 
 	fwrite(&byte, 1, 1, fd); // add quote mark so it's easier to differentiate
 											// between names and values
-	for(int i = 0; i < n; i++)
+	for(int32_t i = 0; i < n; i++)
 	{
 		fwrite(&word[i], 1, 1, fd);
 	}
@@ -105,7 +105,7 @@ static void writeByteAsChars(uint8_t byte, FILE* fd, bool invert)
 	if(invert)
 		byte = invertByte(byte);	
 
-	for(int i = 0; i < 8; i++)
+	for(int32_t i = 0; i < 8; i++)
 	{
 		if(byte & 0x1)
 			fprintf(fd, "1");
@@ -120,7 +120,7 @@ static void writeByteAsChars(uint8_t byte, FILE* fd, bool invert)
 static void writeToBuffer(Parser* parser, uint8_t byte, uint8_t number_of_bits)
 {
 	// can't write more than 8 bits at once
-	for(int i = 0; i < number_of_bits; i++)
+	for(int32_t i = 0; i < number_of_bits; i++)
 	{
 		if(parser->buffer->current >= 8) // the buffer is full
 		{
@@ -139,16 +139,16 @@ static void writeToBuffer(Parser* parser, uint8_t byte, uint8_t number_of_bits)
 
 static void createInstrFromChars(Parser* parser, char* word)
 {
-	int n = strlen(word);
+	int32_t n = strlen(word);
 
 	uint8_t byte = 0;
 	char output[8];
-	for(int i = 0; i < 8; i++)
+	for(int32_t i = 0; i < 8; i++)
 	{
 		output[i] = '0';
 	}
 
-	for(int i = 0; i < n; i++)
+	for(int32_t i = 0; i < n; i++)
 	{
 		output[i] = word[i];
 		byte <<= 1;
@@ -190,7 +190,7 @@ static bool check(Parser* parser, TokenType type)
 	return parser->current.type == type;
 }
 
-static bool match(char* instruction, int start, char* pattern, int length)
+static bool match(char* instruction, int32_t start, char* pattern, int32_t length)
 {
 	if(memcmp(instruction + start, pattern, length) == 0)
 		return true;
@@ -200,11 +200,11 @@ static bool match(char* instruction, int start, char* pattern, int length)
 
 static uint32_t reg(Parser* parser, Scanner* scanner)
 {
-	int index;
+	int32_t index;
 	char* lexeme = (char*)malloc((parser->current.length + 1) * sizeof(char));
 	copyWord(&parser->current.start, &lexeme, parser->current.length);
 	lexeme[parser->current.length] = '\0';
-	int regist;
+	int32_t regist;
 	if((regist = getValueFromTable(parser->registers, lexeme)) != -1)
 	{
 		regist = invertByte(regist);
@@ -234,7 +234,7 @@ static void memoryAccess(Parser* parser, Scanner* scanner)
 static void immediate(Parser* parser)
 {
 	uint32_t value = 0;
-	for(int i = 0; i < parser->current.length; i++)
+	for(int32_t i = 0; i < parser->current.length; i++)
 	{
 		value = value * 10 + (parser->current.start[i] - '0');
 	}
@@ -279,7 +279,7 @@ static void expressionStatement(Parser* parser, Scanner* scanner)
 	}
 	else
 	{
-		//token_info(parser->current);
+		//tokenInfo(parser->current);
 		errorAtCurrent(parser, scanner, "Wrong operand types.");
 	}
 
@@ -352,20 +352,20 @@ static void programEntry(Parser* parser, Scanner* scanner)
 	advance(parser, scanner);
 }
 
-static void createInstructionTable(Parser* parser, int size, char** instructions, char** values)
+static void createInstructionTable(Parser* parser, int32_t size, char** instructions, char** values)
 {
-	for(int i = 0; i < size; i++)
+	for(int32_t i = 0; i < size; i++)
 	{
 		addStringToTable(parser->instructions, instructions[i], values[i]);
 	}
 }
 
-static void createRegisterTable(Parser* parser, int size, char** registers, char** values)
+static void createRegisterTable(Parser* parser, int32_t size, char** registers, char** values)
 {
-	for(int i = 0; i < size; i++)
+	for(int32_t i = 0; i < size; i++)
 	{
-		int j = 0;
-		int value = 0;
+		int32_t j = 0;
+		int32_t value = 0;
 		while(values[i][j] != '\0')
 		{
 			value = value * 10 + (values[i][j++] - '0');
@@ -398,7 +398,7 @@ void openHeaderTestFile(Parser* parser, const char* header_file)
 	parser->theader_fd = fd;
 }
 
-Parser* initParser(char** instructions, char** instruction_values, char** registers, char** register_values, const char* header_file, const char* code_file, int i_size, int r_size)
+Parser* initParser(char** instructions, char** instruction_values, char** registers, char** register_values, const char* header_file, const char* code_file, int32_t i_size, int32_t r_size)
 {
 	Parser* parser = (Parser*)malloc(sizeof(Parser));
 

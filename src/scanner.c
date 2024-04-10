@@ -17,7 +17,7 @@ static Token makeToken(Scanner* scanner, TokenType type)
 	Token token;
 	token.start = scanner->start;
 	token.line = scanner->line;
-	token.length = (int)(scanner->current - scanner->start);
+	token.length = (int32_t)(scanner->current - scanner->start);
 	token.type = type;
 
 	return token;
@@ -99,7 +99,7 @@ static bool isAlphanumeric(char c)
 		return ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' || c == ':');
 }
 
-static bool match(char* word, int length1, char* other_word, int length2)
+static bool match(char* word, int32_t length1, char* other_word, int32_t length2)
 {
 	if(length1 != length2)
 		return false;
@@ -109,10 +109,10 @@ static bool match(char* word, int length1, char* other_word, int length2)
 
 static TokenType identifierType(Scanner* scanner)
 {
-	int length = scanner->current - scanner->start;
+	int32_t length = scanner->current - scanner->start;
 	char* word = (char*)malloc((length + 1) * sizeof(char));
 	word[length] = '\0';
-	for(int i = 0; i < length; i++)
+	for(int32_t i = 0; i < length; i++)
 	{
 		word[i] = *(scanner->start + i);
 	}
@@ -126,7 +126,7 @@ static TokenType identifierType(Scanner* scanner)
 		return TOKEN_REGISTER;
 
 	bool immediate = true;
-	for(int i = 0; i < length; i++)
+	for(int32_t i = 0; i < length; i++)
 	{
 		if(!isDigit(word[i]))
 			immediate = false;
@@ -244,11 +244,11 @@ void freeScanner(Scanner* scanner)
 }
 
 /*
-int main(int argc, char* argv[])
+int32_t main(int32_t argc, char* argv[])
 {
 	char* source = readFile(argv[1]);
 	Scanner* scanner = initScanner(source);
-	int size = 0;
+	int32_t size = 0;
 	char** words = (char**)malloc(256 * sizeof(char*));
 	char** values = (char**)malloc(256 * sizeof(char*));
 	importFile("instructions.txt", &size, &words, &values);
@@ -259,7 +259,7 @@ int main(int argc, char* argv[])
 	scanner->registers = getNode();
 
 	createTrie(scanner->registers, words, size);
-for(int i = 0; i < size; i++)
+for(int32_t i = 0; i < size; i++)
 	{
 		printf("%s\n", words[i]);
 	}
@@ -269,10 +269,10 @@ for(int i = 0; i < size; i++)
 	while((token = scanToken(scanner)).type != TOKEN_EOF)
 	{
 		printf("%d ", token.line);
-		for(int i = 0; i < token.length; i++)
+		for(int32_t i = 0; i < token.length; i++)
 			printf("%c", token.start[i]);
 		printf(" : ");
-		int type = token.type;
+		int32_t type = token.type;
 		switch(type)
 		{
 			case 0:
