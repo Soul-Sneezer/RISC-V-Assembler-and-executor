@@ -2,9 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "parser.h"
-#include "scanner.h"
-#include "debug.h"
-#include "common.h"
 
 static void skipLine(Parser* parser, Scanner* scanner);
 

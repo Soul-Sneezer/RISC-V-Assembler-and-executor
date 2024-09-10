@@ -1,6 +1,8 @@
 #ifndef RISKV_COMMON
 #define RISKV_COMMON
 
+#include <stdint.h>
+
 #define GROW_LIST(x) ( (x) == 0 ? 8 : (2 * (x)))
 
 void importFile(const char* path, int32_t* size, char*** s, char*** values);

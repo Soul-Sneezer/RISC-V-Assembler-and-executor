@@ -1,7 +1,9 @@
 #ifndef RISKV_SCANNER
 #define RISKV_SCANNER
 
+#include <stdint.h>
 #include "trie.h"
+#include "common.h"
 
 typedef struct
 {
@@ -32,6 +34,5 @@ typedef struct
 Scanner* initScanner(char* source);
 void freeScanner(Scanner* scanner);
 Token scanToken(Scanner* scanner);
-void toLowercase(char** word);
 
 #endif

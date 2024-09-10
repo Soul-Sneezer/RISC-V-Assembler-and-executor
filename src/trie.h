@@ -1,6 +1,7 @@
 #ifndef RISKV_TRIE
 #define RISKV_TRIE
 
+#include <stdint.h>
 #include <stdbool.h>
 
 #define ALPHABET_SIZE 36

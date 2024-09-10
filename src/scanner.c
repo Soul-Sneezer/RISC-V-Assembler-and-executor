@@ -3,9 +3,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include "scanner.h"
-#include "common.h"
-#include "trie.h"
-//#include "vm.h"
 
 static bool isAtEnd(Scanner* scanner)
 {
