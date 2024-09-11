@@ -99,48 +99,54 @@ static void skipWhitespace(char* buffer, int32_t* index)
 	}
 }
 
-void importFile(const char* path, int32_t* size, char*** strings, char*** values) // I'm not proud of this
-{
-	bool value = false;
-	*strings = (char**)malloc(256 * sizeof(char*));
-	*values = (char**)malloc(256 * sizeof(char*));
-	char* buffer = readFile(path);
-	int32_t index = 0;
-	int32_t buf_index = 0;
-	int32_t length = 0;
-
-	skipWhitespace(buffer, &buf_index);
-
-	while(buffer[buf_index] != '\0')
-	{
-		if(isDelimiter(buffer[buf_index]))
-		{
-			char* new_string = getString(buffer, &buf_index, length);
-			if(new_string != NULL)
-			{
-				if(!value)
-					(*strings)[index] = new_string;
-				else
-					(*values)[index++] = new_string;
-			}
-			value = !value;
-			length = 0;
-			buf_index++;
-			skipWhitespace(buffer, &buf_index);
-		}
-		else if(buffer[buf_index] != '\0')
-		{
-			buf_index++;
-			length++;
-		}
-	}
-	*size = index;
-}
-
 void copyWord(char** from, char** to, int32_t length)
 {
 	for(int32_t i = 0; i < length; i++)
 	{
 		(*to)[i] = (*from)[i];
 	}
+}
+
+static void assignInstructionEncoding(TrieNode* node)
+{
+	char* buffer = readFile("instructions.txt");
+	
+	int32_t index = 0;
+	int32_t n = 0;
+	char** words = (char**)malloc(256 * sizeof(char*));
+	int32_t* values = (int32_t*)malloc(256 * sizeof(int32_t));
+
+	while(buffer[index] != '\0')
+	{
+		int32_t start = index;
+		while(buffer[index] != ' ')
+		{
+			index++;
+		}
+
+		int32_t length = index - start;
+		char* word = (char*)malloc((length + 1) * sizeof(char));
+
+		for(int32_t i = 0; i < length; i++)
+		{
+			word[i] = buffer[start + i];
+		}
+
+		word[length] = '\0';
+		toLowercase(&word);
+		words[n] = word;
+		index++;
+
+		values[n++] = parseNumber(buffer, &index);
+
+		if(buffer[index] == '\n')
+			index++;
+	}
+
+	for(int32_t i = 0; i < n; i++)
+	{
+		insertNode(node, words[i], values[i]);
+	}
+
+	free(buffer);
 }

@@ -142,6 +142,9 @@ Scanner* initScanner(char* source)
 	scanner->current = source;
 	scanner->line = 1;
 
+	scanner->instructions = createTrie(instruction_names, instructions_size);
+	scanner->registers = createTrie(register_names, 129);
+	
 	return scanner;
 }
 
@@ -239,88 +242,3 @@ void freeScanner(Scanner* scanner)
 {
 
 }
-
-/*
-int32_t main(int32_t argc, char* argv[])
-{
-	char* source = readFile(argv[1]);
-	Scanner* scanner = initScanner(source);
-	int32_t size = 0;
-	char** words = (char**)malloc(256 * sizeof(char*));
-	char** values = (char**)malloc(256 * sizeof(char*));
-	importFile("instructions.txt", &size, &words, &values);
-	scanner->instructions = getNode();
-	createTrie(scanner->instructions, words, size);
-	
-	importFile("registers.txt", &size, &words, &values);
-	scanner->registers = getNode();
-
-	createTrie(scanner->registers, words, size);
-for(int32_t i = 0; i < size; i++)
-	{
-		printf("%s\n", words[i]);
-	}
-	Token token;
-	//token = scanToken(scanner);
-	//token = scanToken(scanner);
-	while((token = scanToken(scanner)).type != TOKEN_EOF)
-	{
-		printf("%d ", token.line);
-		for(int32_t i = 0; i < token.length; i++)
-			printf("%c", token.start[i]);
-		printf(" : ");
-		int32_t type = token.type;
-		switch(type)
-		{
-			case 0:
-				printf("TOKEN_INSTRUCTION\n");
-				break;
-			case 1:
-				printf("TOKEN_REGISTER\n");
-				break;
-			case 2:
-				printf("TOKEN_IMMEDIATE\n");
-				break;
-			case 3:
-				printf("TOKEN_LABEL\n");
-				break;
-			case 4:
-				printf("TOKEN_STRING\n");
-				break;
-			case 5:
-				printf("TOKEN_COMMA\n");
-				break;
-			case 6:
-				printf("TOKEN_CONSTANT\n");
-				break;
-			case 7:
-				printf("TOKEN_ERR\n");
-				break;
-			case 8:
-				printf("TOKEN_EOF\n");
-				break;
-			case 9:
-				printf("TOKEN_SECTION\n");
-				break;
-			case 10:
-				printf("TOKEN_ENTRY\n");
-				break;
-			case 11:
-				printf("TOKEN_LEFT_PAREN\n");
-				break;
-			case 12:
-				printf("TOKEN_RIGHT_PAREN\n");
-				break;
-			case 13:
-				printf("TOKEN_MINUS\n");
-				break;
-			case 14:
-				printf("TOKEN_SPACE\n");
-				break;
-			case 15:
-				printf("TOKEN_ASCIZ\n");
-				break;
-		}
-	}
-}
-*/

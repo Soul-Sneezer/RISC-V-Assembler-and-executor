@@ -8,11 +8,11 @@ static void skipLine(Parser* parser, Scanner* scanner);
 static void errorAt(Parser* parser, Scanner* scanner, Token token, const char* message)
 {
 	fprintf(stderr, "[line %d] Error", token.line);
-	//if (token.type == TOKEN_EOF)
-	//{
-	//	fprintf(stderr, " at end");
-	//}
-	if (token.type == TOKEN_ERR)
+	if (token.type == TOKEN_EOF)
+	{
+		fprintf(stderr, " at end");
+	}
+	else if (token.type == TOKEN_ERR)
 	{
 	}
 	else
@@ -21,7 +21,7 @@ static void errorAt(Parser* parser, Scanner* scanner, Token token, const char* m
 	}
 
 	fprintf(stderr, ": %s\n", message);
-	skipLine(parser, scanner);
+	//skipLine(parser, scanner);
 }
 
 static void errorAtCurrent(Parser* parser, Scanner* scanner, const char* message)
@@ -41,7 +41,6 @@ static void advance(Parser* parser, Scanner* scanner)
 	for (;;)
 	{
 		parser->current = scanToken(scanner);
-		tokenInfo(parser->current);
 		if(parser->current.type == TOKEN_EOF)
 			return;
 		if(parser->current.type != TOKEN_ERR)
@@ -70,8 +69,6 @@ static uint8_t invertByte(uint8_t byte)
 
 	return inverse_byte;
 }
-
-
 
 static void writeByte(uint8_t byte, FILE* fd, bool invert)
 {
@@ -276,7 +273,6 @@ static void expressionStatement(Parser* parser, Scanner* scanner)
 	}
 	else
 	{
-		//tokenInfo(parser->current);
 		errorAtCurrent(parser, scanner, "Wrong operand types.");
 	}
 

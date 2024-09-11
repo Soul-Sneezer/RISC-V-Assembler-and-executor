@@ -5,17 +5,6 @@
 #include "common.h"
 #include "scanner.h"
 
-TrieNode* getNode(void)
-{
-	TrieNode* new_node = (TrieNode*)malloc(sizeof(TrieNode));
-	new_node->isWord = -1;
-
-	for(int32_t i = 0; i < ALPHABET_SIZE; i++)
-		new_node->nodes[i] = NULL;
-
-	return new_node;
-}
-
 static int32_t alphabetIndex(char c)
 {
 	if(c >= '0' && c <= '9')
@@ -40,7 +29,8 @@ void insertNode(TrieNode* node, char* word, int32_t value)
 			int32_t index = alphabetIndex(word[i]);
 			if(copy->nodes[index] == NULL)
 			{
-				copy->nodes[index] = getNode();
+				copy->nodes[index] = (TrieNode*)malloc(sizeof(TrieNode));
+				copy->nodes[index]->isWord = -1;
 			}
 			copy = copy->nodes[index];
 			
@@ -50,57 +40,23 @@ void insertNode(TrieNode* node, char* word, int32_t value)
 
 }
 
-void createTrie(TrieNode* node, char** words, int32_t n)
+TrieNode* createTrie(char** words, int32_t n)
 {
+	TrieNode* node = (TrieNode*)malloc(sizeof(TrieNode));
+	node->isWord = -1;
+
 	for(int32_t i = 0; i < n; i++)
 	{
 		insertNode(node, words[i], -2);
 	}
+
+	return node;
 }
 
-void createInstructionTrie(TrieNode* node)
+void freeTrie(TrieNode* trie)
 {
-	char* buffer = readFile("instructions2.txt");
-	
-	int32_t index = 0;
-	int32_t n = 0;
-	char** words = (char**)malloc(256 * sizeof(char*));
-	int32_t* values = (int32_t*)malloc(256 * sizeof(int32_t));
-
-	while(buffer[index] != '\0')
-	{
-		int32_t start = index;
-		while(buffer[index] != ' ')
-		{
-			index++;
-		}
-
-		int32_t length = index - start;
-		char* word = (char*)malloc((length + 1) * sizeof(char));
-
-		for(int32_t i = 0; i < length; i++)
-		{
-			word[i] = buffer[start + i];
-		}
-
-		word[length] = '\0';
-		toLowercase(&word);
-		words[n] = word;
-		index++;
-
-		values[n++] = parseNumber(buffer, &index);
-
-		if(buffer[index] == '\n')
-			index++;
-	}
-
-	for(int32_t i = 0; i < n; i++)
-	{
-		insertNode(node, words[i], values[i]);
-	}
-
-	free(buffer);
 }
+
 
 int32_t findWord(TrieNode* node, char* word)
 {
@@ -116,12 +72,3 @@ int32_t findWord(TrieNode* node, char* word)
 
 	return node->isWord;
 }
-
-/* for testing
-int32_t main()
-{
-	TrieNode* root = getNode();
-	createInstructionTrie(root);
-	printf("%d", findWord(root, "trap"));
-}
-*/
