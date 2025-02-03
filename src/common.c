@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <ctype.h>
 #include "common.h"
+#include "trie.h"
 
 int32_t parseNumber(char* buffer, int32_t* index)
 {
@@ -49,18 +51,16 @@ char* readFile(const char* path)
 	return buffer;
 }
 
-void toLowercaseC(char* c)
+void charToLowercase(char* c)
 {
-	if(*c >= 'A' && *c <= 'Z')
-		(*c) += 32;
+    *c = tolower(*c);
 }
 
-void toLowercase(char** s)
+void strToLowercase(char* s)
 {
-	for(int32_t i = 0; (*s)[i] != '\0'; i++)
+	for(int32_t i = 0; s[i] != '\0'; i++)
 	{
-		if((*s)[i] >= 'A' && (*s)[i] <= 'Z')
-			(*s)[i] += 32;
+        charToLowercase(&s[i]);
 	}
 }
 

@@ -1,1 +1,0 @@
-gcc main.c scanner.c scanner.h parser.c parser.h table.c table.h trie.c trie.h common.c common.h heap.c heap.h

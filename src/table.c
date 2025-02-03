@@ -4,43 +4,44 @@
 #include <stdbool.h>
 #include <string.h>
 #include "table.h"
-#include "common.h"
 
-void initTable(Table** table)
+Table t;
+
+#define GROW_LIST(x) ((x) == 0 ? 8 : ((x) * 2))
+
+void initTable(Table* table)
 {
-	*table = (Table*)malloc(sizeof(Table));
-	(*table)->size = 0;
-	(*table)->count = 0;
-	(*table)->entries = NULL; 
+	table->size = 0;
+	table->count = 0;
+	table->entries = NULL; 
 }
 
 void freeTable(Table* table)
 {
 	free(table->entries);
-	initTable(&table);
+    initTable(table);
 }
 
-uint32_t hashString(char* s, int32_t n)
+static uint64_t hashFunc(void* value, size_t n)
 {
-	uint32_t hash = 2166136261u;
-	for (int32_t i = 0; i < n; i++)
+    uint64_t hash = 2166136261u;
+    uint8_t* bytes = (uint8_t*)value;
+	for (uint64_t i = 0; i < n; i++)
 	{
-		hash ^= s[i];
+		hash ^= bytes[i];
 		hash *= 16777619;
 	}
 
 	return hash;
 }
 
-Entry* findEntry(Entry* entries, int32_t size, char* s, int32_t n, uint32_t hash)
+Entry* findEntry(Entry* entries, uint64_t size, uint8_t* s, uint64_t n, uint64_t hash)
 {
-	if(size == 0)
-		return NULL;
-	uint32_t index = hash % size;
+	uint64_t index = hash % size;
 	for (;;)
 	{
 		Entry* entry = &entries[index];
-		if (entry == NULL || entry->key == NULL)
+		if (entry->key == NULL)
 		{
 			return entry;
 		}
@@ -52,63 +53,35 @@ Entry* findEntry(Entry* entries, int32_t size, char* s, int32_t n, uint32_t hash
 	}
 }
 
-bool findStringInTable(Table* table, char* s, char** val)
+bool findInTable(Table* table, void* s, uint64_t n, EntryValue* val)
 {
-	int32_t n = strlen(s);
-	uint32_t hash = hashString(s, n);	
-	
-	Entry* entry = findEntry(table->entries, table->size, s, n, hash);
-	if(entry->key == NULL)
-		return false;
-	
-	(*val) = entry->as.str;
-	return true;
+	uint64_t hash;
+	Entry* entry;
 
-}
+	hash = hashFunc(s, n);
+	entry = findEntry(table->entries, table->size, s, n, hash);
 
-bool findInTable(Table* table, char* s, int32_t* val)
-{
-	int32_t n = strlen(s);
-	uint32_t hash = hashString(s, n);	
-	
-	Entry* entry = findEntry(table->entries, table->size, s, n, hash);
 	if(entry->key == NULL)
 		return false;
 
-	*val = entry->as.integer;
+	*val = entry->value;
 	return true;
 }
 
-int32_t getValueFromTable(Table* table, char* key)
-{
-	int32_t n = strlen(key);
-
-	Entry* entry = findEntry(table->entries, table->size, key, n, hashString(key, n));
-	if(entry->key == NULL)
-		return -1;
-	return entry->as.integer;
-}
-
-char* getStringFromTable(Table* table, char* key)
-{
-	char* str;
-	if(findStringInTable(table, key, &str))
-			return str;
-
-	return NULL;
-}
-
-static void adjustSize(Table* table, int32_t capacity)
+static void adjustSize(Table* table, uint64_t capacity)
 {
 	Entry* entries = (Entry*)malloc(capacity * sizeof(Entry));
-	for(int32_t i = 0; i < capacity; i++)
+	for(uint64_t i = 0; i < capacity; i++)
 	{
 		entries[i].key = NULL;
-		entries[i].as.integer = 0;
-		entries[i].as.str = NULL;
+		entries[i].value.int_value = 0;
+        entries[i].value.str_value = NULL;
+        entries[i].value.bool_value = false;
+        entries[i].value.float_value = 0.0f;
+        entries[i].value.double_value = 0.0;
 	}
 
-	for(int32_t i = 0; i < table->size; i++)
+	for(uint64_t i = 0; i < table->size; i++)
 	{
 		Entry* entry = &table->entries[i];
 		if (entry->key == NULL) continue;
@@ -117,8 +90,7 @@ static void adjustSize(Table* table, int32_t capacity)
 		dest->key = entry->key;
 		dest->key_length = entry->key_length;
 		dest->hash = entry->hash;
-		dest->as.integer = entry->as.integer;
-		dest->as.str = entry->as.str;
+		dest->value = entry->value;
 	}
 
 	free(table->entries);
@@ -126,65 +98,69 @@ static void adjustSize(Table* table, int32_t capacity)
 	table->entries = entries;
 }
 
-bool addToTable(Table* table, char* s, int32_t n)
+static void setEntry_uint64_t(EntryValue* entry, int64_t value)
 {
-	if(table->count + 1 > table->size * TABLE_LOAD_FACTOR)
-	{
-		int32_t capacity = GROW_LIST(table->size);
-		adjustSize(table, capacity);
-	}
-	
-	uint32_t hash = hashString(s, n);
-	Entry* entry = findEntry(table->entries, table->size, s, n, hash);
-	bool is_new_entry = (entry->key == NULL); 
-	if (is_new_entry) table->count++;
-
-	entry->key = s;
-	entry->hash = hash;
-	entry->as.integer++;
-	entry->key_length = n;
-	return is_new_entry;
+    entry->int_value = value;
+    entry->type = TYPE_INT;
 }
 
-bool addValueToTable(Table* table, char* key, int32_t value)
+static void setEntry_bool(EntryValue* entry, bool value)
 {
-	int32_t key_length = strlen(key);
-	if(table->count + 1 > table->size * TABLE_LOAD_FACTOR)
-	{
-		int32_t capacity = GROW_LIST(table->size);
-		adjustSize(table, capacity);
-	}
-
-	uint32_t hash = hashString(key, key_length);
-	Entry* entry = findEntry(table->entries, table->size, key, key_length, hash);
-	bool is_new_entry = (entry->key == NULL);
-	if (is_new_entry) table->count++;
-
-	entry->key = key;
-	entry->hash = hash;
-	entry->as.integer = value;
-	entry->key_length = key_length;
-
-	return is_new_entry;
+    entry->bool_value = value;
+    entry->type = TYPE_BOOL;
 }
 
-bool addStringToTable(Table* table, char* key, char* value)
+static void setEntry_float(EntryValue* entry, float value)
 {
-	int32_t key_length = strlen(key);
-	if(table->count + 1 > table->size * TABLE_LOAD_FACTOR)
-	{
-		int32_t capacity = GROW_LIST(table->size);
-		adjustSize(table, capacity);
-	}
-	uint32_t hash = hashString(key, key_length);
-	Entry* entry = findEntry(table->entries, table->size, key, key_length, hash);
-	bool is_new_entry = (entry->key == NULL);
-	if (is_new_entry) table->count++;
-
-	entry->key = key;
-	entry->hash = hash;
-	entry->as.str = value;
-	entry->key_length = key_length;
-
-	return is_new_entry;
+    entry->float_value = value;
+    entry->type = TYPE_FLOAT;
 }
+
+static void setEntry_double(EntryValue* entry, double value)
+{
+    entry->double_value = value;
+    entry->type = TYPE_DOUBLE;
+}
+
+static void setEntry_string(EntryValue* entry, char* str)
+{
+    size_t len = strlen(str);
+    entry->str_value = malloc(len + 1);
+    strcpy(entry->str_value, str);
+    entry->str_value[len] = '\0';
+    entry->type = TYPE_STR;
+}
+
+#define GENERIC_INSERT_FUNC_DEF(type)                                           \
+    bool addToTable_##type(Table* table, void* s, uint64_t n, type value)       \
+    {                                                                           \
+        if(table->count + 1 > table->size * TABLE_LOAD_FACTOR)                  \ 
+        {                                                                       \
+            uint64_t capacity = GROW_LIST(table->size);                         \
+            adjustSize(table, capacity);                                        \
+        }                                                                       \
+                                                                                \
+        uint64_t hash;                                                          \
+        hash = hashFunc(s, n);                                                  \
+                                                                                \
+        Entry* entry = findEntry(table->entries, table->size, s, n, hash);      \
+                                                                                \
+        bool isNewEntry = (entry->key == NULL);                                 \
+        if (isNewEntry) table->count++;                                         \
+                                                                                \
+        entry->key = s;                                                         \
+        entry->hash = hash;                                                     \
+        setEntry_##type(&entry->value, value);                                  \
+        entry->key_length = n;                                                  \
+                                                                                \
+        return isNewEntry;                                                      \
+	}
+
+    // entry->key just points to the string, it doesn't own it so you can't just free it 
+    // should i copy it?
+
+GENERIC_INSERT_FUNC_DEF(string)
+GENERIC_INSERT_FUNC_DEF(uint64_t)
+GENERIC_INSERT_FUNC_DEF(bool)
+GENERIC_INSERT_FUNC_DEF(float)
+GENERIC_INSERT_FUNC_DEF(double)
