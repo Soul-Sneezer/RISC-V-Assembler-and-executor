@@ -1,5 +1,5 @@
-# RISK-V-Assembler-and-executor
-Not to be confused with a RISC-V Assembler and executor.
+# RISC-V-Assembler-and-executor
+Assembler that implements a subset of RISC V assembly, using dynamic length encoding. And an executor that executes the binary code generates by the assembler.
 
 Disclaimer: as of 15.01.2024 4PM this project is _still_ not finished. (But I'm working on it)
 
