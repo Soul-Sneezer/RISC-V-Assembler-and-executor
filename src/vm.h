@@ -5,48 +5,48 @@
 
 typedef enum
 {
-	OP_BEQZ, OP_FMULS, OP_FADDD, OP_BNEZ, OP_SUB, OP_FGT, OP_FMULD,
-	OP_BGE, OP_FLD, OP_FADDS, OP_FSQRT, OP_FLW, OP_BLE, OP_FLT, OP_FSUB, OP_SRAI,
-	OP_SLLI, OP_BGT, OP_FMV, OP_LD, OP_LB, OP_SD, OP_MV, OP_LW, OP_SB, 
-	OP_CALL, OP_RET, OP_ADD, OP_LI, OP_ADDI, OP_SFW, OP_LA, OP_J,
+    OP_BEQZ, OP_FMULS, OP_FADDD, OP_BNEZ, OP_SUB, OP_FGT, OP_FMULD,
+    OP_BGE, OP_FLD, OP_FADDS, OP_FSQRT, OP_FLW, OP_BLE, OP_FLT, OP_FSUB, OP_SRAI,
+    OP_SLLI, OP_BGT, OP_FMV, OP_LD, OP_LB, OP_SD, OP_MV, OP_LW, OP_SB, 
+    OP_CALL, OP_RET, OP_ADD, OP_LI, OP_ADDI, OP_SFW, OP_LA, OP_J,
 } Opcodes;
 
 typedef uint8_t Byte;
 
 typedef struct
 {
-	Byte bytes[2];
+    Byte bytes[2];
 } Word;
 
 typedef struct
 {
-	Byte bytes[4];
+    Byte bytes[4];
 } DWord;
 
 typedef struct
 {
-	char* name;
-	Byte* entry_point;
+    char* name;
+    Byte* entry_point;
 } Location;
 
 typedef struct 
 {
-	Byte mem[8192];
-	Byte* base_pointer;
-	Byte* stack_top;
-	Byte* heap;
-	int32_t heap_size;
+    Byte mem[8192];
+    Byte* base_pointer;
+    Byte* stack_top;
+    Byte* heap;
+    int32_t heap_size;
 
-	Location* labels;
+    Location* labels;
 
-	Byte* code;
-	int32_t code_size;
+    Byte* code;
+    int32_t code_size;
 } Memory;
 
 typedef struct 
 {
-	Memory cpu_mem;
-	DWord registers[64];
+    Memory cpu_mem;
+    DWord registers[64];
 } VM;
 
 void loadHeader(VM* cpu, const char* header_file);
